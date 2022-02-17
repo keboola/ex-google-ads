@@ -1,0 +1,12 @@
+{
+  "primary_key": [
+    "campaignId",
+    "metricsClicks"
+  ],
+  "columns": [
+    "campaignId",
+    "campaignName",
+    "metricsClicks",
+    "metricsImpressions"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+    "primary_key": [
+        "id"
+    ],
+    "columns": [
+        "id",
+        "descriptiveName",
+        "currencyCode",
+        "timeZone"
+    ]
+}

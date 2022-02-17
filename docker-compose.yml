@@ -5,3 +5,9 @@ services:
     volumes:
       - ./:/code
       - ./data:/data
+    environment:
+      - CLIENT_ID
+      - CLIENT_SECRET
+      - API_DATA
+      - CUSTOMER_ID
+      - DEVELOPER_TOKEN

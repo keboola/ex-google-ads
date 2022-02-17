@@ -1,0 +1,19 @@
+{
+  "parameters": {
+    "customerId": "%env(string:CUSTOMER_ID)%",
+    "name": "test-report",
+    "query": "invalidQuery"
+  },
+  "image_parameters": {
+    "#developer_token": "%env(string:DEVELOPER_TOKEN)%"
+  },
+  "authorization": {
+    "oauth_api": {
+      "credentials": {
+        "#data": "%env(string:API_DATA)%",
+        "#appSecret": "%env(string:CLIENT_SECRET)%",
+        "appKey": "%env(string:CLIENT_ID)%"
+      }
+    }
+  }
+}
