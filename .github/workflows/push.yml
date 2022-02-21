@@ -11,6 +11,11 @@ env:
     DOCKERHUB_USER: keboolabot
     DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}'
     KBC_STORAGE_TOKEN: '${{ secrets.KBC_STORAGE_TOKEN }}'
+    CLIENT_ID: '1025566943657-4s4n2n7ls96df5re7jklko26rhvs5b79.apps.googleusercontent.com'
+    CLIENT_SECRET: '${{ secrets.CLIENT_SECRET }}'
+    API_DATA: '${{ secrets.API_DATA }}'
+    CUSTOMER_ID: '9250499593'
+    DEVELOPER_TOKEN: '${{ secrets.DEVELOPER_TOKEN }}'
     KBC_TEST_PROJECT_URL: ''
     KBC_TEST_PROJECT_CONFIGS: ''
 jobs:
@@ -73,7 +78,15 @@ jobs:
                     tag_as_latest: true
             -
                 name: 'Run tests'
-                run: 'docker run ${{env.APP_IMAGE}} composer ci'
+                run: |
+                    docker run \
+                    -e CLIENT_ID \
+                    -e CLIENT_SECRET \
+                    -e API_DATA \
+                    -e CUSTOMER_ID \
+                    -e DEVELOPER_TOKEN \
+                    ${{env.APP_IMAGE}} \
+                    composer ci
     tests-in-kbc:
         needs: build
         runs-on: ubuntu-latest

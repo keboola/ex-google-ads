@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyComponent;
+namespace Keboola\GoogleAds\Configuration;
 
 use Keboola\Component\Config\BaseConfigDefinition;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -16,11 +16,16 @@ class ConfigDefinition extends BaseConfigDefinition
         /** @noinspection NullPointerExceptionInspection */
         $parametersNode
             ->children()
-                ->scalarNode('foo')
-                    ->defaultValue('baz')
-                ->end()
+                ->scalarNode('customerId')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('since')->end()
+                ->scalarNode('until')->end()
+                ->scalarNode('#developerToken')->end()
+                ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('query')->isRequired()->cannotBeEmpty()->end()
+                ->arrayNode('primary')->scalarPrototype()->end()->end()
             ->end()
         ;
+
         // @formatter:on
         return $parametersNode;
     }

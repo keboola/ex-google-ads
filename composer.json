@@ -4,7 +4,15 @@
     "license": "MIT",
     "require": {
         "php": "^7.4",
-        "keboola/php-component": "^8.1"
+        "ext-json": "*",
+        "google/gax": "^1.11",
+        "google/protobuf": "^3.19",
+        "googleads/google-ads-php": "^14.0",
+        "guzzlehttp/guzzle": "^7.4",
+        "keboola/csv": "^2.3",
+        "keboola/php-component": "^8.1",
+        "psr/log": "^1.1",
+        "symfony/config": "^5.4"
     },
     "require-dev": {
         "php-parallel-lint/php-parallel-lint": "^1.2",
@@ -17,13 +25,13 @@
     },
     "autoload": {
         "psr-4": {
-            "MyComponent\\": "src/"
+            "Keboola\\GoogleAds\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "MyComponent\\Tests\\": "tests/phpunit/",
-            "MyComponent\\FunctionalTests\\": "tests/functional/"
+            "Keboola\\GoogleAds\\Tests\\": "tests/phpunit/",
+            "Keboola\\GoogleAds\\FunctionalTests\\": "tests/functional/"
         }
     },
     "scripts": {
@@ -51,6 +59,9 @@
     },
     "config": {
         "sort-packages": true,
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

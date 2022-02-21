@@ -1,0 +1,1 @@
+Primary keys "invalidPrimaryKey" are not valid. Expected keys: "campaignId, campaignName, metricsClicks, metricsImpressions"
