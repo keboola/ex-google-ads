@@ -15,6 +15,7 @@ env:
     CLIENT_SECRET: '${{ secrets.CLIENT_SECRET }}'
     API_DATA: '${{ secrets.API_DATA }}'
     CUSTOMER_ID: '9250499593'
+    CUSTOMER_ID_WITH_DASH: '925-049-9593'
     DEVELOPER_TOKEN: '${{ secrets.DEVELOPER_TOKEN }}'
     KBC_TEST_PROJECT_URL: ''
     KBC_TEST_PROJECT_CONFIGS: ''
@@ -84,6 +85,7 @@ jobs:
                     -e CLIENT_SECRET \
                     -e API_DATA \
                     -e CUSTOMER_ID \
+                    -e CUSTOMER_ID_WITH_DASH \
                     -e DEVELOPER_TOKEN \
                     ${{env.APP_IMAGE}} \
                     composer ci

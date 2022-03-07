@@ -21,7 +21,8 @@ class Config extends BaseConfig
 
     public function getCustomerId(): string
     {
-        return $this->getValue(['parameters', 'customerId']);
+        $customerId = $this->getValue(['parameters', 'customerId']);
+        return str_replace('-', '', $customerId);
     }
 
     public function getSince(): ?string
