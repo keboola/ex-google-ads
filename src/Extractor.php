@@ -142,7 +142,7 @@ class Extractor
             $manifestOptions
         );
 
-        if ($reportTableName) {
+        if ($reportTableName && $reportColumns) {
             // Create manifest for Report
             $manifestOptions = new OutTableManifestOptions();
             $manifestOptions
@@ -237,6 +237,11 @@ class Extractor
                 ['pageSize' => self::REPORT_PAGE_SIZE]
             );
 
+        $page = $search->getPage();
+        if ($page->getPageElementCount() === 0) {
+            return [];
+        }
+
         $csv = new CsvWriter(sprintf(
             '%s/out/tables/%s.csv',
             $this->dataDir,
@@ -246,7 +251,6 @@ class Extractor
         $listColumns = [];
         $hasNextPage = true;
         $isPrimaryKeysValidated = false;
-        $page = $search->getPage();
         while ($hasNextPage) {
             /** @var SearchGoogleAdsResponse $response */
             $response = $page->getResponseObject();
