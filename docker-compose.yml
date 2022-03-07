@@ -10,4 +10,5 @@ services:
       - CLIENT_SECRET
       - API_DATA
       - CUSTOMER_ID
+      - CUSTOMER_ID_WITH_DASH
       - DEVELOPER_TOKEN

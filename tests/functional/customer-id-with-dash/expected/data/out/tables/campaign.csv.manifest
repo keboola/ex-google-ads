@@ -1,0 +1,17 @@
+{
+  "primary_key": [
+    "customerId",
+    "id"
+  ],
+  "columns": [
+    "customerId",
+    "id",
+    "name",
+    "status",
+    "servingStatus",
+    "adServingOptimizationStatus",
+    "advertisingChannelType",
+    "startDate",
+    "endDate"
+  ]
+}
