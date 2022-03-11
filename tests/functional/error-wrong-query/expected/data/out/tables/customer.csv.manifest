@@ -7,5 +7,6 @@
         "descriptiveName",
         "currencyCode",
         "timeZone"
-    ]
+    ],
+    "incremental": true
 }

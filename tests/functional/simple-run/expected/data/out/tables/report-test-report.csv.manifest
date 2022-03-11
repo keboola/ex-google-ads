@@ -5,5 +5,6 @@
     "campaignName",
     "metricsClicks",
     "metricsImpressions"
-  ]
+  ],
+  "incremental": true
 }
