@@ -123,6 +123,7 @@ class Extractor
         // Create manifest for Customer
         $manifestOptions = new OutTableManifestOptions();
         $manifestOptions
+            ->setIncremental(true)
             ->setPrimaryKeyColumns(self::USER_TABLES_STRUCTURE[self::CUSTOMER_TABLE]['primaryKeys'])
             ->setColumns(self::USER_TABLES_STRUCTURE[self::CUSTOMER_TABLE]['columns']);
 
@@ -134,6 +135,7 @@ class Extractor
         // Create manifest for Campaigns
         $manifestOptions = new OutTableManifestOptions();
         $manifestOptions
+            ->setIncremental(true)
             ->setPrimaryKeyColumns(self::USER_TABLES_STRUCTURE[self::CAMPAIGN_TABLE]['primaryKeys'])
             ->setColumns(self::USER_TABLES_STRUCTURE[self::CAMPAIGN_TABLE]['columns']);
 
@@ -146,6 +148,7 @@ class Extractor
             // Create manifest for Report
             $manifestOptions = new OutTableManifestOptions();
             $manifestOptions
+                ->setIncremental(true)
                 ->setPrimaryKeyColumns($this->config->getPrimaryKeys())
                 ->setColumns($reportColumns);
 
