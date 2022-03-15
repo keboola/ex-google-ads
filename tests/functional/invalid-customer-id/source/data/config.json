@@ -1,0 +1,19 @@
+{
+  "parameters": {
+    "customerId": "5643061637",
+    "name": "test-report",
+    "query": "SELECT campaign.id, campaign.name, metrics.clicks, metrics.impressions FROM campaign"
+  },
+  "image_parameters": {
+    "#developer_token": "%env(string:DEVELOPER_TOKEN)%"
+  },
+  "authorization": {
+    "oauth_api": {
+      "credentials": {
+        "#data": "%env(string:API_DATA)%",
+        "#appSecret": "%env(string:CLIENT_SECRET)%",
+        "appKey": "%env(string:CLIENT_ID)%"
+      }
+    }
+  }
+}
