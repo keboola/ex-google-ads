@@ -7,6 +7,7 @@ namespace Keboola\GoogleAds;
 use Google\Ads\GoogleAds\Lib\Configuration;
 use Google\Ads\GoogleAds\Lib\OAuth2TokenBuilder;
 use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClientBuilder;
+use Google\ApiCore\ApiException;
 use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\BaseComponent;
 use Keboola\Component\UserException;
@@ -38,6 +39,13 @@ class Component extends BaseComponent
             if (in_array($e->getCode(), range(400, 499))) {
                 throw new UserException($e->getMessage(), $e->getCode(), $e);
             }
+        } catch (ApiException $e) {
+            $message = json_decode($e->getMessage(), true);
+            throw new UserException(sprintf(
+                '%s: %s',
+                $e->getStatus(),
+                $message['message'] ?? $e->getMessage()
+            ));
         }
     }
 
