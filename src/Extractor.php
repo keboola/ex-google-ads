@@ -285,20 +285,25 @@ class Extractor
     {
         $json = $result->serializeToJsonString();
         $data = json_decode($json, true);
+        return $this->processResultRow($data);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
+    private function processResultRow(array $data, string $itemNamePrefix = ''): array
+    {
         $output = [];
         foreach ($data as $key => $item) {
             if (in_array($key, self::SKIP_RESOURCE_ITEM)) {
                 continue;
             }
+            $nameColumn = !empty($itemNamePrefix) ? $itemNamePrefix . ucfirst($key) : $key;
             if (is_array($item)) {
-                foreach ($item as $subKey => $subItem) {
-                    if (in_array($subKey, self::SKIP_RESOURCE_ITEM)) {
-                        continue;
-                    }
-                    $output[sprintf('%s%s', $key, ucfirst($subKey))] = $subItem;
-                }
+                $output = array_merge($output, $this->processResultRow($item, $key));
             } else {
-                $output[(string) $key] = $item;
+                $output[$nameColumn] = $item;
             }
         }
         return $output;
