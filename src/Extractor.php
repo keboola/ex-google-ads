@@ -7,6 +7,7 @@ namespace Keboola\GoogleAds;
 use Generator;
 use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClient;
 use Google\Ads\GoogleAds\V10\Resources\Customer;
+use Google\Ads\GoogleAds\V10\Resources\CustomerClient;
 use Google\Ads\GoogleAds\V10\Services\GoogleAdsRow;
 use Google\Ads\GoogleAds\V10\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
@@ -90,7 +91,7 @@ class Extractor
         /** @var Customer $customer */
         foreach ($this->getCustomers() as $customer) {
             $this->logger->info(sprintf('Extraction data of customer "%s".', $customer->getDescriptiveName()));
-            $parsedCustomer = $this->parseResponse($customer);
+            $parsedCustomer = $this->sortCustomerArray($this->parseResponse($customer));
             $csvCustomer->writeRow($parsedCustomer);
 
             $this->logger->info('Downloading campaigns.');
@@ -162,16 +163,16 @@ class Extractor
     private function getCustomers(): Generator
     {
         $query = [];
-        $query[] = 'SELECT customer.id, customer.descriptive_name, customer.currency_code, customer.time_zone';
-        $query[] = 'FROM customer';
-        if ($this->config->getSince() && $this->config->getUntil()) {
-            $query[] = sprintf(
-                'WHERE segments.date BETWEEN "%s" AND "%s"',
-                $this->config->getSince(),
-                $this->config->getUntil()
-            );
-        }
-        $query[] = 'ORDER BY customer.id';
+        $query[] = 'SELECT '
+            . 'customer_client.id, '
+            . 'customer_client.manager, '
+            . 'customer_client.descriptive_name, '
+            . 'customer_client.currency_code, '
+            . 'customer_client.time_zone';
+
+        $query[] = ' FROM customer_client';
+        $query[] = ' WHERE customer_client.level <= 1';
+        $query[] = ' ORDER BY customer_client.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
             $this->config->getCustomerId(),
@@ -179,7 +180,10 @@ class Extractor
         );
 
         foreach ($search->iterateAllElements() as $result) {
-            yield $result->getCustomer();
+            /** @var GoogleAdsRow $result */
+            if ($result->getCustomerClient() instanceof CustomerClient && !$result->getCustomerClient()->getManager()) {
+                yield $result->getCustomerClient();
+            }
         }
     }
 
@@ -328,5 +332,19 @@ class Extractor
                 implode(', ', $columns)
             ));
         }
+    }
+
+    /**
+     * @param array<string, string> $parseResponse
+     * @return array<string, string>
+     */
+    private function sortCustomerArray(array $parseResponse): array
+    {
+        return [
+            'id' => $parseResponse['id'],
+            'descriptiveName' => $parseResponse['descriptiveName'],
+            'currencyCode' => $parseResponse['currencyCode'],
+            'timeZone' => $parseResponse['timeZone'],
+        ];
     }
 }
