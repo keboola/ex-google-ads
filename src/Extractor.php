@@ -95,7 +95,7 @@ class Extractor
             $csvCustomer->writeRow($parsedCustomer);
 
             $this->logger->info('Downloading campaigns.');
-            foreach ($this->getCampaigns($parsedCustomer['id']) as $campaign) {
+            foreach ($this->getCampaigns((string) $parsedCustomer['id']) as $campaign) {
                 $parsedCampaign = $this->parseResponse($campaign);
                 $csvCampaign->writeRow(array_merge(
                     ['customerId' => $parsedCustomer['id']],
@@ -108,7 +108,7 @@ class Extractor
             try {
                 $reportTableName = sprintf('report-%s', $this->config->getName());
                 $reportColumns = $this->getReport(
-                    $parsedCustomer['id'],
+                    (string) $parsedCustomer['id'],
                     $this->config->getQuery(),
                     $reportTableName
                 );
