@@ -171,7 +171,7 @@ class Extractor
             . 'customer_client.time_zone';
 
         $query[] = ' FROM customer_client';
-        $query[] = ' WHERE customer_client.level <= 1';
+        $query[] = ' WHERE customer_client.level <= 1 AND customer_client.status = ENABLED';
         $query[] = ' ORDER BY customer_client.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
