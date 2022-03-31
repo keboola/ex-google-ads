@@ -334,6 +334,9 @@ class Extractor
         }
     }
 
+    /**
+     * @return array<string, string>
+     */
     private function sortCustomerArray(array $parseResponse): array
     {
         return [
