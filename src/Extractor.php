@@ -342,9 +342,9 @@ class Extractor
     {
         return [
             'id' => $parseResponse['id'],
-            'descriptiveName' => $parseResponse['descriptiveName'],
-            'currencyCode' => $parseResponse['currencyCode'],
-            'timeZone' => $parseResponse['timeZone'],
+            'descriptiveName' => $parseResponse['descriptiveName'] ?? null,
+            'currencyCode' => $parseResponse['currencyCode'] ?? null,
+            'timeZone' => $parseResponse['timeZone'] ?? null,
         ];
     }
 }
