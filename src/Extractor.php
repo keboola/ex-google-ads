@@ -95,7 +95,7 @@ class Extractor
             $csvCustomer->writeRow($parsedCustomer);
 
             $this->logger->info('Downloading campaigns.');
-            foreach ($this->getCampaigns($parsedCustomer['id']) as $campaign) {
+            foreach ($this->getCampaigns((string) $parsedCustomer['id']) as $campaign) {
                 $parsedCampaign = $this->parseResponse($campaign);
                 $csvCampaign->writeRow(array_merge(
                     ['customerId' => $parsedCustomer['id']],
@@ -108,7 +108,7 @@ class Extractor
             try {
                 $reportTableName = sprintf('report-%s', $this->config->getName());
                 $reportColumns = $this->getReport(
-                    $parsedCustomer['id'],
+                    (string) $parsedCustomer['id'],
                     $this->config->getQuery(),
                     $reportTableName
                 );
@@ -171,7 +171,7 @@ class Extractor
             . 'customer_client.time_zone';
 
         $query[] = ' FROM customer_client';
-        $query[] = ' WHERE customer_client.level <= 1';
+        $query[] = ' WHERE customer_client.level <= 1 AND customer_client.status = ENABLED';
         $query[] = ' ORDER BY customer_client.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
@@ -336,15 +336,15 @@ class Extractor
 
     /**
      * @param array<string, string> $parseResponse
-     * @return array<string, string>
+     * @return array<string, string|null>
      */
     private function sortCustomerArray(array $parseResponse): array
     {
         return [
             'id' => $parseResponse['id'],
-            'descriptiveName' => $parseResponse['descriptiveName'],
-            'currencyCode' => $parseResponse['currencyCode'],
-            'timeZone' => $parseResponse['timeZone'],
+            'descriptiveName' => $parseResponse['descriptiveName'] ?? null,
+            'currencyCode' => $parseResponse['currencyCode'] ?? null,
+            'timeZone' => $parseResponse['timeZone'] ?? null,
         ];
     }
 }
