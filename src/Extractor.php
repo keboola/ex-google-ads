@@ -283,6 +283,9 @@ class Extractor
                 }
                 $columnData = $columnData[$key];
             }
+            if (is_array($columnData)) {
+                $columnData = json_encode($columnData);
+            }
             $output[$columnName] = $columnData;
         }
         return $output;
