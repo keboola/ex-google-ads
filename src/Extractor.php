@@ -283,6 +283,9 @@ class Extractor
                 }
                 $columnData = $columnData[$key];
             }
+            if (is_array($columnData)) {
+                $columnData = serialize($columnData);
+            }
             $output[$columnName] = $columnData;
         }
         return $output;
