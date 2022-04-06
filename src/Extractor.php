@@ -11,6 +11,7 @@ use Google\Ads\GoogleAds\V10\Resources\CustomerClient;
 use Google\Ads\GoogleAds\V10\Services\GoogleAdsRow;
 use Google\Ads\GoogleAds\V10\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
+use Google\ApiCore\PagedListResponse;
 use Google\Protobuf\Internal\Message;
 use Keboola\Component\Manifest\ManifestManager;
 use Keboola\Component\Manifest\ManifestManager\Options\OutTableManifestOptions;
@@ -27,34 +28,9 @@ class Extractor
 
     private const CAMPAIGN_TABLE = 'campaign';
 
-    private const USER_TABLES_STRUCTURE = [
-        self::CUSTOMER_TABLE => [
-            'primaryKeys' => ['id'],
-            'columns' => [
-                'id',
-                'descriptiveName',
-                'currencyCode',
-                'timeZone',
-            ],
-        ],
-        self::CAMPAIGN_TABLE => [
-            'primaryKeys' => ['customerId', 'id'],
-            'columns' => [
-                'customerId',
-                'id',
-                'name',
-                'status',
-                'servingStatus',
-                'adServingOptimizationStatus',
-                'advertisingChannelType',
-                'startDate',
-                'endDate',
-            ],
-        ],
-    ];
-
-    private const SKIP_RESOURCE_ITEM = [
-        'resourceName',
+    private const USER_TABLES_PRIMARY_KEYS = [
+        self::CUSTOMER_TABLE => ['id'],
+        self::CAMPAIGN_TABLE => ['customerId', 'id'],
     ];
 
     private GoogleAdsClient $googleAdsClient;
@@ -83,34 +59,20 @@ class Extractor
 
     public function extract(): void
     {
-        $csvCustomer = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CUSTOMER_TABLE));
-        $csvCampaign = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CAMPAIGN_TABLE));
-
-        $reportTableName = null;
-        $reportColumns = [];
         /** @var Customer $customer */
-        foreach ($this->getCustomers() as $customer) {
+        foreach ($this->getAndSaveCustomers() as $customer) {
             $this->logger->info(sprintf('Extraction data of customer "%s".', $customer->getDescriptiveName()));
-            $parsedCustomer = $this->sortCustomerArray($this->parseResponse($customer));
-            $csvCustomer->writeRow($parsedCustomer);
 
             $this->logger->info('Downloading campaigns.');
-            foreach ($this->getCampaigns((string) $parsedCustomer['id']) as $campaign) {
-                $parsedCampaign = $this->parseResponse($campaign);
-                $csvCampaign->writeRow(array_merge(
-                    ['customerId' => $parsedCustomer['id']],
-                    $parsedCampaign
-                ));
-            }
+            $this->getAndSaveCampaigns((string) $customer->getId());
 
             // Download Report
             $this->logger->info('Downloading query report.');
             try {
-                $reportTableName = sprintf('report-%s', $this->config->getName());
-                $reportColumns = $this->getReport(
-                    (string) $parsedCustomer['id'],
+                $this->getReport(
+                    (string) $customer->getId(),
                     $this->config->getQuery(),
-                    $reportTableName
+                    sprintf('report-%s', $this->config->getName())
                 );
             } catch (ApiException $e) {
                 $this->logger->error(sprintf(
@@ -120,47 +82,9 @@ class Extractor
                 ));
             }
         }
-
-        // Create manifest for Customer
-        $manifestOptions = new OutTableManifestOptions();
-        $manifestOptions
-            ->setIncremental(true)
-            ->setPrimaryKeyColumns(self::USER_TABLES_STRUCTURE[self::CUSTOMER_TABLE]['primaryKeys'])
-            ->setColumns(self::USER_TABLES_STRUCTURE[self::CUSTOMER_TABLE]['columns']);
-
-        $this->manifestManager->writeTableManifest(
-            sprintf('%s.csv', self::CUSTOMER_TABLE),
-            $manifestOptions
-        );
-
-        // Create manifest for Campaigns
-        $manifestOptions = new OutTableManifestOptions();
-        $manifestOptions
-            ->setIncremental(true)
-            ->setPrimaryKeyColumns(self::USER_TABLES_STRUCTURE[self::CAMPAIGN_TABLE]['primaryKeys'])
-            ->setColumns(self::USER_TABLES_STRUCTURE[self::CAMPAIGN_TABLE]['columns']);
-
-        $this->manifestManager->writeTableManifest(
-            sprintf('%s.csv', self::CAMPAIGN_TABLE),
-            $manifestOptions
-        );
-
-        if ($reportTableName && $reportColumns) {
-            // Create manifest for Report
-            $manifestOptions = new OutTableManifestOptions();
-            $manifestOptions
-                ->setIncremental(true)
-                ->setPrimaryKeyColumns($this->config->getPrimaryKeys())
-                ->setColumns($reportColumns);
-
-            $this->manifestManager->writeTableManifest(
-                sprintf('%s.csv', $reportTableName),
-                $manifestOptions
-            );
-        }
     }
 
-    private function getCustomers(): Generator
+    private function getAndSaveCustomers(): Generator
     {
         $query = [];
         $query[] = 'SELECT '
@@ -179,26 +103,47 @@ class Extractor
             implode(' ', $query)
         );
 
+        $listColumns = $this->getColumnsFromSearch($search, true);
+        unset($listColumns['manager']);
+
+        $csvCustomer = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CUSTOMER_TABLE));
+
+        // Create manifest for Customer
+        $manifestOptions = new OutTableManifestOptions();
+        $manifestOptions
+            ->setIncremental(true)
+            ->setPrimaryKeyColumns(self::USER_TABLES_PRIMARY_KEYS[self::CUSTOMER_TABLE])
+            ->setColumns(array_values($listColumns));
+
+        $this->manifestManager->writeTableManifest(
+            sprintf('%s.csv', self::CUSTOMER_TABLE),
+            $manifestOptions
+        );
+
         foreach ($search->iterateAllElements() as $result) {
             /** @var GoogleAdsRow $result */
             if ($result->getCustomerClient() instanceof CustomerClient && !$result->getCustomerClient()->getManager()) {
+                $parsedCustomer = $this->parseResponse($result->getCustomerClient(), $listColumns);
+                $csvCustomer->writeRow($parsedCustomer);
                 yield $result->getCustomerClient();
             }
         }
     }
 
-    private function getCampaigns(string $customerId): Generator
+    private function getAndSaveCampaigns(string $customerId): void
     {
+        $csvCampaign = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CAMPAIGN_TABLE));
+
         $query = [];
         $query[] = 'SELECT '
             . 'campaign.id, '
             . 'campaign.name, '
             . 'campaign.status, '
             . 'campaign.serving_status, '
-            . 'campaign.start_date, '
-            . 'campaign.end_date, '
             . 'campaign.ad_serving_optimization_status, '
-            . 'campaign.advertising_channel_type';
+            . 'campaign.advertising_channel_type, '
+            . 'campaign.start_date, '
+            . 'campaign.end_date';
 
         $query[] = 'FROM campaign';
         $where = [];
@@ -218,15 +163,33 @@ class Extractor
             implode(' ', $query)
         );
 
+        $listColumns = $this->getColumnsFromSearch($search, true);
+
         foreach ($search->iterateAllElements() as $result) {
-            yield $result->getCampaign();
+            /** @var GoogleAdsRow $result */
+            /** @var Message $campaign */
+            $campaign = $result->getCampaign();
+            $parsedCampaign = $this->parseResponse($campaign, $listColumns);
+            $csvCampaign->writeRow(array_merge(
+                ['customerId' => $customerId],
+                $parsedCampaign
+            ));
         }
+
+        // Create manifest for Campaigns
+        $manifestOptions = new OutTableManifestOptions();
+        $manifestOptions
+            ->setIncremental(true)
+            ->setPrimaryKeyColumns(self::USER_TABLES_PRIMARY_KEYS[self::CAMPAIGN_TABLE])
+            ->setColumns(array_values(['customerId'] + $listColumns));
+
+        $this->manifestManager->writeTableManifest(
+            sprintf('%s.csv', self::CAMPAIGN_TABLE),
+            $manifestOptions
+        );
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function getReport(string $customerId, string $query, string $tableName): array
+    private function getReport(string $customerId, string $query, string $tableName): void
     {
         if ($this->config->getSince() && $this->config->getUntil()) {
             $query .= sprintf(
@@ -246,7 +209,7 @@ class Extractor
 
         $page = $search->getPage();
         if ($page->getPageElementCount() === 0) {
-            return [];
+            return;
         }
 
         $csv = new CsvWriter(sprintf(
@@ -255,7 +218,8 @@ class Extractor
             $tableName
         ));
 
-        $listColumns = [];
+        $listColumns = $this->getColumnsFromSearch($search);
+
         $hasNextPage = true;
         $isPrimaryKeysValidated = false;
         while ($hasNextPage) {
@@ -264,9 +228,8 @@ class Extractor
 
             /** @var GoogleAdsRow $result */
             foreach ($response->getResults() as $result) {
-                $data = $this->parseResponse($result);
+                $data = $this->parseResponse($result, $listColumns);
                 if (!$isPrimaryKeysValidated) {
-                    $listColumns = array_keys($data);
                     $this->validatePrimaryKeys($listColumns, $this->config->getPrimaryKeys());
                     $isPrimaryKeysValidated = true;
                 }
@@ -279,42 +242,57 @@ class Extractor
             }
         }
 
-        return $listColumns;
+        // Create manifest for Report
+        $manifestOptions = new OutTableManifestOptions();
+        $manifestOptions
+            ->setIncremental(true)
+            ->setPrimaryKeyColumns($this->config->getPrimaryKeys())
+            ->setColumns(array_values($listColumns));
+
+        $this->manifestManager->writeTableManifest(
+            sprintf('%s.csv', $tableName),
+            $manifestOptions
+        );
     }
 
     /**
+     * @param array<string, string> $listColumns
      * @return array<string, string>
      */
-    private function parseResponse(Message $result): array
+    private function parseResponse(Message $result, array $listColumns): array
     {
         $json = $result->serializeToJsonString();
         $data = json_decode($json, true);
-        return $this->processResultRow($data);
+        return $this->processResultRow($data, $listColumns);
     }
 
     /**
      * @param array<string, mixed> $data
+     * @param array<string, string> $listColumns
      * @return array<string, string>
      */
-    private function processResultRow(array $data, string $itemNamePrefix = ''): array
+    private function processResultRow(array $data, array $listColumns): array
     {
         $output = [];
-        foreach ($data as $key => $item) {
-            if (in_array($key, self::SKIP_RESOURCE_ITEM)) {
-                continue;
+        foreach ($listColumns as $columnKey => $columnName) {
+            $columnData = $data;
+            foreach (explode('.', $columnKey) as $key) {
+                if (!array_key_exists($key, $columnData)) {
+                    $output[$columnName] = null;
+                    continue 2;
+                }
+                $columnData = $columnData[$key];
             }
-            $nameColumn = !empty($itemNamePrefix) ? $itemNamePrefix . ucfirst($key) : $key;
-            if (is_array($item)) {
-                $output = array_merge($output, $this->processResultRow($item, $key));
-            } else {
-                $output[$nameColumn] = $item;
+            if (is_array($columnData)) {
+                $columnData = json_encode($columnData);
             }
+            $output[$columnName] = $columnData;
         }
         return $output;
     }
 
     /**
-     * @param array<int, string> $columns
+     * @param array<string, string> $columns
      * @param array<int, string> $primaryKeys
      */
     private function validatePrimaryKeys(array $columns, array $primaryKeys): void
@@ -335,16 +313,35 @@ class Extractor
     }
 
     /**
-     * @param array<string, string> $parseResponse
-     * @return array<string, string|null>
+     * @return array<string,string>
      */
-    private function sortCustomerArray(array $parseResponse): array
+    private function getColumnsFromSearch(PagedListResponse $search, bool $skipFirstColumnKey = false): array
     {
-        return [
-            'id' => $parseResponse['id'],
-            'descriptiveName' => $parseResponse['descriptiveName'] ?? null,
-            'currencyCode' => $parseResponse['currencyCode'] ?? null,
-            'timeZone' => $parseResponse['timeZone'] ?? null,
-        ];
+        $listColumns = [];
+
+        /** @var SearchGoogleAdsResponse $response */
+        $response = $search->getPage()->getResponseObject();
+
+        $fieldMask = $response->getFieldMask();
+        if (!$fieldMask) {
+            return [];
+        }
+        $fieldMaskPaths = $fieldMask->getPaths();
+        $iterator = $fieldMaskPaths->getIterator();
+        while ($iterator->valid()) {
+            $column = (string) $iterator->current();
+            if ($skipFirstColumnKey) {
+                $column = explode('.', $column);
+                array_shift($column);
+                $column = implode('.', $column);
+            }
+            $columnKey = lcfirst(str_replace('_', '', ucwords($column, '_')));
+            $columnValue = lcfirst(str_replace(['.', '_'], '', ucwords($column, '._')));
+
+            $listColumns[$columnKey] = $columnValue;
+            $iterator->next();
+        }
+
+        return $listColumns;
     }
 }
