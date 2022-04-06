@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& /tmp/composer-install.sh
 
 # Install and configure the C implementation of Protobuf extension if needed.
-RUN pecl install protobuf; echo 'extension=protobuf.so' >> $PHP_INI_DIR/conf.d/protobuf.ini;
+RUN pecl install protobuf-3.19.4; echo 'extension=protobuf.so' >> $PHP_INI_DIR/conf.d/protobuf.ini;
 
 ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
