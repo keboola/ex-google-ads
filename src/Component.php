@@ -12,17 +12,20 @@ use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\BaseComponent;
 use Keboola\Component\UserException;
 use Keboola\GoogleAds\Configuration\Config;
+use Keboola\GoogleAds\Configuration\ConfigActionDefinition;
 use Keboola\GoogleAds\Configuration\ConfigDefinition;
 
 class Component extends BaseComponent
 {
+    private const ACTION_LIST_ACCOUNTS = 'listAccounts';
+
     protected function run(): void
     {
         $oauth = (new OAuth2TokenBuilder())->from($this->getOAuthConfiguration())->build();
 
         $googleAdsClient = (new GoogleAdsClientBuilder())
             ->withOAuth2Credential($oauth)
-            ->from($this->getGoogleAdsConfiguration())
+            ->from($this->getGoogleAdsConfiguration($this->getConfig()->getCustomerId()))
             ->build();
 
         $extractor = new Extractor(
@@ -49,6 +52,22 @@ class Component extends BaseComponent
         }
     }
 
+    /**
+     * @return mixed[]
+     */
+    protected function runListAccounts(): array
+    {
+        $oauth = (new OAuth2TokenBuilder())->from($this->getOAuthConfiguration())->build();
+
+        $googleAdsClient = (new GoogleAdsClientBuilder())
+            ->withOAuth2Credential($oauth)
+            ->from($this->getGoogleAdsConfiguration())
+            ->build();
+
+        $accountHierarchy = new GetAccountHierarchy($googleAdsClient);
+        return $accountHierarchy->run();
+    }
+
     public function getConfig(): Config
     {
         /** @var Config $config */
@@ -61,9 +80,25 @@ class Component extends BaseComponent
         return Config::class;
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getSyncActions(): array
+    {
+        return [
+            self::ACTION_LIST_ACCOUNTS => 'runListAccounts',
+        ];
+    }
+
     protected function getConfigDefinitionClass(): string
     {
-        return ConfigDefinition::class;
+        $action = $this->getRawConfig()['action'] ?? 'run';
+        switch ($action) {
+            case self::ACTION_LIST_ACCOUNTS:
+                return ConfigActionDefinition::class;
+            default:
+                return ConfigDefinition::class;
+        }
     }
 
     private function getOAuthConfiguration(): Configuration
@@ -83,13 +118,18 @@ class Component extends BaseComponent
         ]);
     }
 
-    private function getGoogleAdsConfiguration(): Configuration
+    private function getGoogleAdsConfiguration(?string $customerId = null): Configuration
     {
-        return new Configuration([
+        $config = [
             'GOOGLE_ADS' => [
                 'developerToken' => $this->getConfig()->getDeveloperToken(),
-                'loginCustomerId' => $this->getConfig()->getCustomerId(),
             ],
-        ]);
+        ];
+
+        if ($customerId) {
+            $config['GOOGLE_ADS']['loginCustomerId'] = $customerId;
+        }
+
+        return new Configuration($config);
     }
 }
