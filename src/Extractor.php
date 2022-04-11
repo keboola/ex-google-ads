@@ -17,6 +17,7 @@ use Keboola\Component\Manifest\ManifestManager;
 use Keboola\Component\Manifest\ManifestManager\Options\OutTableManifestOptions;
 use Keboola\Component\UserException;
 use Keboola\Csv\CsvWriter;
+use Keboola\Csv\Exception;
 use Keboola\GoogleAds\Configuration\Config;
 use Psr\Log\LoggerInterface;
 
@@ -43,34 +44,50 @@ class Extractor
 
     private string $dataDir;
 
+    /** @var string[] */
+    private array $customersIdDownloaded;
+
+    /**
+     * @param string[] $customersIdDownloaded
+     */
     public function __construct(
         GoogleAdsClient $googleAdsClient,
         Config $config,
         LoggerInterface $logger,
         ManifestManager $manifestManager,
-        string $dataDir
+        string $dataDir,
+        array $customersIdDownloaded
     ) {
         $this->googleAdsClient = $googleAdsClient;
         $this->config = $config;
         $this->logger = $logger;
         $this->manifestManager = $manifestManager;
         $this->dataDir = $dataDir;
+        $this->customersIdDownloaded = $customersIdDownloaded;
     }
 
-    public function extract(): void
+    /**
+     * @return string[]
+     */
+    public function extract(string $rootCustomerId): array
     {
         /** @var Customer $customer */
-        foreach ($this->getAndSaveCustomers() as $customer) {
+        foreach ($this->getAndSaveCustomers($rootCustomerId) as $customer) {
+            $customerId = (string) $customer->getId();
+            if (in_array($customerId, $this->customersIdDownloaded)) {
+                $this->logger->info(sprintf('Customer "%s" already downloaded.', $customer->getDescriptiveName()));
+                continue;
+            }
             $this->logger->info(sprintf('Extraction data of customer "%s".', $customer->getDescriptiveName()));
 
             $this->logger->info('Downloading campaigns.');
-            $this->getAndSaveCampaigns((string) $customer->getId());
+            $this->getAndSaveCampaigns($customerId);
 
             // Download Report
             $this->logger->info('Downloading query report.');
             try {
                 $this->getReport(
-                    (string) $customer->getId(),
+                    $customerId,
                     $this->config->getQuery(),
                     sprintf('report-%s', $this->config->getName())
                 );
@@ -81,10 +98,12 @@ class Extractor
                     $e->getMessage()
                 ));
             }
+            $this->customersIdDownloaded[] = $customerId;
         }
+        return $this->customersIdDownloaded;
     }
 
-    private function getAndSaveCustomers(): Generator
+    private function getAndSaveCustomers(string $customerId): Generator
     {
         $query = [];
         $query[] = 'SELECT '
@@ -95,18 +114,22 @@ class Extractor
             . 'customer_client.time_zone';
 
         $query[] = ' FROM customer_client';
-        $query[] = ' WHERE customer_client.level <= 1 AND customer_client.status = ENABLED';
+        $query[] = ' WHERE customer_client.status = ENABLED';
         $query[] = ' ORDER BY customer_client.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            $this->config->getCustomerId(),
+            $customerId,
             implode(' ', $query)
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
         unset($listColumns['manager']);
 
-        $csvCustomer = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CUSTOMER_TABLE));
+        $csvCustomer = $this->openCsvFile(sprintf(
+            '%s/out/tables/%s.csv',
+            $this->dataDir,
+            self::CUSTOMER_TABLE
+        ));
 
         // Create manifest for Customer
         $manifestOptions = new OutTableManifestOptions();
@@ -132,7 +155,11 @@ class Extractor
 
     private function getAndSaveCampaigns(string $customerId): void
     {
-        $csvCampaign = new CsvWriter(sprintf('%s/out/tables/%s.csv', $this->dataDir, self::CAMPAIGN_TABLE));
+        $csvCampaign = $this->openCsvFile(sprintf(
+            '%s/out/tables/%s.csv',
+            $this->dataDir,
+            self::CAMPAIGN_TABLE
+        ));
 
         $query = [];
         $query[] = 'SELECT '
@@ -212,7 +239,7 @@ class Extractor
             return;
         }
 
-        $csv = new CsvWriter(sprintf(
+        $csv = $this->openCsvFile(sprintf(
             '%s/out/tables/%s.csv',
             $this->dataDir,
             $tableName
@@ -343,5 +370,18 @@ class Extractor
         }
 
         return $listColumns;
+    }
+
+    private function openCsvFile(string $fileName): CsvWriter
+    {
+        $filePointer = @fopen($fileName, 'w+');
+        if (!$filePointer) {
+            $message = !is_null(error_get_last()) ? error_get_last()['message'] : '';
+            throw new Exception(
+                "Cannot open file {$fileName} " . $message,
+                Exception::FILE_NOT_EXISTS
+            );
+        }
+        return new CsvWriter($filePointer);
     }
 }

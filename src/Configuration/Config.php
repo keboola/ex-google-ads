@@ -19,10 +19,13 @@ class Config extends BaseConfig
         return $this->getValue(['parameters', 'query']);
     }
 
-    public function getCustomerId(): string
+    /**
+     * @return string[]
+     */
+    public function getCustomersId(): array
     {
-        $customerId = $this->getValue(['parameters', 'customerId']);
-        return str_replace('-', '', $customerId);
+        $customers = $this->getValue(['parameters', 'customerId']);
+        return array_map(fn($v) => str_replace('-', '', $v), $customers);
     }
 
     public function getSince(): ?string
