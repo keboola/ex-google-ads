@@ -16,7 +16,14 @@ class ConfigDefinition extends BaseConfigDefinition
         /** @noinspection NullPointerExceptionInspection */
         $parametersNode
             ->children()
-                ->scalarNode('customerId')->isRequired()->cannotBeEmpty()->end()
+                ->arrayNode('customerId')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                    ->beforeNormalization()
+                        ->ifString()->then(fn($v) => [$v])
+                    ->end()
+                    ->scalarPrototype()->end()
+                ->end()
                 ->scalarNode('since')->end()
                 ->scalarNode('until')->end()
                 ->scalarNode('#developerToken')->end()

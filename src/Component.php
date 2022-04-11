@@ -22,29 +22,32 @@ class Component extends BaseComponent
 
     protected function run(): void
     {
-        $googleAdsClient = $this->getGoogleAdsClient($this->getConfig()->getCustomerId());
+        $customersIdDownloaded = [];
+        foreach ($this->getConfig()->getCustomersId() as $customerId) {
+            $googleAdsClient = $this->getGoogleAdsClient($customerId);
+            $extractor = new Extractor(
+                $googleAdsClient,
+                $this->getConfig(),
+                $this->getLogger(),
+                $this->getManifestManager(),
+                $this->getDataDir(),
+                $customersIdDownloaded
+            );
 
-        $extractor = new Extractor(
-            $googleAdsClient,
-            $this->getConfig(),
-            $this->getLogger(),
-            $this->getManifestManager(),
-            $this->getDataDir()
-        );
-
-        try {
-            $extractor->extract();
-        } catch (ClientException $e) {
-            if (in_array($e->getCode(), range(400, 499))) {
-                throw new UserException($e->getMessage(), $e->getCode(), $e);
+            try {
+                $customersIdDownloaded = $extractor->extract($customerId);
+            } catch (ClientException $e) {
+                if (in_array($e->getCode(), range(400, 499))) {
+                    throw new UserException($e->getMessage(), $e->getCode(), $e);
+                }
+            } catch (ApiException $e) {
+                $message = json_decode($e->getMessage(), true);
+                throw new UserException(sprintf(
+                    '%s: %s',
+                    $e->getStatus(),
+                    $message['message'] ?? $e->getMessage()
+                ));
             }
-        } catch (ApiException $e) {
-            $message = json_decode($e->getMessage(), true);
-            throw new UserException(sprintf(
-                '%s: %s',
-                $e->getStatus(),
-                $message['message'] ?? $e->getMessage()
-            ));
         }
     }
 

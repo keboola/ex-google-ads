@@ -41,7 +41,7 @@ class ConfigTest extends TestCase
         yield 'min-config' => [
             [
                 'parameters' => [
-                    'customerId' => 1234567890,
+                    'customerId' => ['1234567890'],
                     'name' => 'testName',
                     'query' => 'testQuery',
                     'primary' => [],
@@ -56,7 +56,7 @@ class ConfigTest extends TestCase
         yield 'config-with-date' => [
             [
                 'parameters' => [
-                    'customerId' => 1234567890,
+                    'customerId' => ['1234567890'],
                     'name' => 'testName',
                     'since' => '20200101',
                     'until' => '20220203',
@@ -73,7 +73,7 @@ class ConfigTest extends TestCase
         yield 'config-with-primary' => [
             [
                 'parameters' => [
-                    'customerId' => 1234567890,
+                    'customerId' => ['1234567890'],
                     'name' => 'testName',
                     'query' => 'testQuery',
                     'primary' => [
@@ -93,7 +93,7 @@ class ConfigTest extends TestCase
         yield 'config-with-dev-token' => [
             [
                 'parameters' => [
-                    'customerId' => 1234567890,
+                    'customerId' => ['1234567890'],
                     'name' => 'testName',
                     'query' => 'testQuery',
                     'primary' => [],
