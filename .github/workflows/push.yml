@@ -16,6 +16,7 @@ env:
     API_DATA: '${{ secrets.API_DATA }}'
     CUSTOMER_ID: '9250499593'
     CUSTOMER_ID_WITH_DASH: '925-049-9593'
+    CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS: '6823200026'
     DEVELOPER_TOKEN: '${{ secrets.DEVELOPER_TOKEN }}'
     KBC_TEST_PROJECT_URL: ''
     KBC_TEST_PROJECT_CONFIGS: ''
@@ -87,6 +88,7 @@ jobs:
                     -e CUSTOMER_ID \
                     -e CUSTOMER_ID_WITH_DASH \
                     -e DEVELOPER_TOKEN \
+                    -e CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS \
                     ${{env.APP_IMAGE}} \
                     composer ci
     tests-in-kbc:
