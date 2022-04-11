@@ -74,10 +74,6 @@ class Extractor
         /** @var Customer $customer */
         foreach ($this->getAndSaveCustomers($rootCustomerId) as $customer) {
             $customerId = (string) $customer->getId();
-            if (in_array($customerId, $this->customersIdDownloaded)) {
-                $this->logger->info(sprintf('Customer "%s" already downloaded.', $customer->getDescriptiveName()));
-                continue;
-            }
             $this->logger->info(sprintf('Extraction data of customer "%s".', $customer->getDescriptiveName()));
 
             $this->logger->info('Downloading campaigns.');
@@ -145,11 +141,25 @@ class Extractor
 
         foreach ($search->iterateAllElements() as $result) {
             /** @var GoogleAdsRow $result */
-            if ($result->getCustomerClient() instanceof CustomerClient && !$result->getCustomerClient()->getManager()) {
-                $parsedCustomer = $this->parseResponse($result->getCustomerClient(), $listColumns);
-                $csvCustomer->writeRow($parsedCustomer);
-                yield $result->getCustomerClient();
+            if (!($result->getCustomerClient() instanceof CustomerClient)) {
+                continue;
             }
+
+            if ($result->getCustomerClient()->getManager()) {
+                continue;
+            }
+
+            if (in_array($customerId, $this->customersIdDownloaded)) {
+                $this->logger->info(sprintf(
+                    'Customer "%s" already downloaded.',
+                    $result->getCustomerClient()->getDescriptiveName()
+                ));
+                continue;
+            }
+
+            $parsedCustomer = $this->parseResponse($result->getCustomerClient(), $listColumns);
+            $csvCustomer->writeRow($parsedCustomer);
+            yield $result->getCustomerClient();
         }
     }
 
@@ -374,7 +384,7 @@ class Extractor
 
     private function openCsvFile(string $fileName): CsvWriter
     {
-        $filePointer = @fopen($fileName, 'w+');
+        $filePointer = @fopen($fileName, 'a');
         if (!$filePointer) {
             $message = !is_null(error_get_last()) ? error_get_last()['message'] : '';
             throw new Exception(
