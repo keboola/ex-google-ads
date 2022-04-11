@@ -6,6 +6,7 @@ namespace Keboola\GoogleAds;
 
 use Google\Ads\GoogleAds\Lib\Configuration;
 use Google\Ads\GoogleAds\Lib\OAuth2TokenBuilder;
+use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClient;
 use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClientBuilder;
 use Google\ApiCore\ApiException;
 use GuzzleHttp\Exception\ClientException;
@@ -21,12 +22,7 @@ class Component extends BaseComponent
 
     protected function run(): void
     {
-        $oauth = (new OAuth2TokenBuilder())->from($this->getOAuthConfiguration())->build();
-
-        $googleAdsClient = (new GoogleAdsClientBuilder())
-            ->withOAuth2Credential($oauth)
-            ->from($this->getGoogleAdsConfiguration($this->getConfig()->getCustomerId()))
-            ->build();
+        $googleAdsClient = $this->getGoogleAdsClient($this->getConfig()->getCustomerId());
 
         $extractor = new Extractor(
             $googleAdsClient,
@@ -57,14 +53,7 @@ class Component extends BaseComponent
      */
     protected function runListAccounts(): array
     {
-        $oauth = (new OAuth2TokenBuilder())->from($this->getOAuthConfiguration())->build();
-
-        $googleAdsClient = (new GoogleAdsClientBuilder())
-            ->withOAuth2Credential($oauth)
-            ->from($this->getGoogleAdsConfiguration())
-            ->build();
-
-        $accountHierarchy = new GetAccountHierarchy($googleAdsClient);
+        $accountHierarchy = new GetAccountHierarchy($this->getGoogleAdsClient());
         return $accountHierarchy->run();
     }
 
@@ -99,6 +88,18 @@ class Component extends BaseComponent
             default:
                 return ConfigDefinition::class;
         }
+    }
+
+    private function getGoogleAdsClient(?string $customerId = null): GoogleAdsClient
+    {
+        $oauth = (new OAuth2TokenBuilder())->from($this->getOAuthConfiguration())->build();
+
+        $googleAdsClient = (new GoogleAdsClientBuilder())
+            ->withOAuth2Credential($oauth)
+            ->from($this->getGoogleAdsConfiguration($customerId))
+            ->build();
+
+        return $googleAdsClient;
     }
 
     private function getOAuthConfiguration(): Configuration
