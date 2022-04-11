@@ -1,10 +1,10 @@
 {
-  "primary_key": [],
-  "columns": [
-    "campaignId",
-    "campaignName",
-    "metricsClicks",
-    "metricsImpressions"
-  ],
-  "incremental": true
+    "primary_key": [],
+    "columns": [
+        "campaignId",
+        "campaignName",
+        "metricsClicks",
+        "metricsImpressions"
+    ],
+    "incremental": true
 }
