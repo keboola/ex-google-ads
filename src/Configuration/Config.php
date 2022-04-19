@@ -28,6 +28,11 @@ class Config extends BaseConfig
         return array_map(fn($v) => str_replace('-', '', $v), $customers);
     }
 
+    public function getAccountChildren(): bool
+    {
+        return $this->getValue(['parameters', 'getAccountChildren'], false);
+    }
+
     public function getSince(): ?string
     {
         $since = $this->getValue(['parameters', 'since'], '-1 day');

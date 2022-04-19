@@ -24,9 +24,12 @@ class GetAccountHierarchy
      */
     private static array $rootCustomerClients = [];
 
-    public function __construct(GoogleAdsClient $googleAdsClient)
+    private bool $getAccountChildren;
+
+    public function __construct(GoogleAdsClient $googleAdsClient, bool $getAccountChildren = false)
     {
         $this->googleAdsClient = $googleAdsClient;
+        $this->getAccountChildren = $getAccountChildren;
     }
 
     /**
@@ -83,10 +86,13 @@ class GetAccountHierarchy
 
         $googleAdsServiceClient = $googleAdsClient->getGoogleAdsServiceClient();
 
-        $query = 'SELECT customer_client.client_customer, customer_client.level,'
+        $query = sprintf(
+            'SELECT customer_client.client_customer, customer_client.level,'
             . ' customer_client.manager, customer_client.descriptive_name,'
             . ' customer_client.id FROM customer_client'
-            . ' WHERE customer_client.level <= 1 AND customer_client.status = ENABLED';
+            . ' WHERE customer_client.level <= %d AND customer_client.status = ENABLED',
+            $this->getAccountChildren === true ? 1 : 0
+        );
 
         $rootCustomerClient = null;
         $managerCustomerIdsToSearch = [$rootCustomerId];

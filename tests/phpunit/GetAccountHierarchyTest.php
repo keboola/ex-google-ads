@@ -37,9 +37,9 @@ class GetAccountHierarchyTest extends TestCase
             ->build();
     }
 
-    public function testRun(): void
+    public function testRunWithChildren(): void
     {
-        $accountHierarchy = new GetAccountHierarchy($this->googleAdsClient);
+        $accountHierarchy = new GetAccountHierarchy($this->googleAdsClient, true);
 
         $result = $accountHierarchy->run();
 
@@ -71,5 +71,33 @@ class GetAccountHierarchyTest extends TestCase
         self::assertArrayHasKey('level', $firstChild['info']);
         self::assertArrayHasKey('children', $firstChild);
         self::assertEquals(1, $firstChild['info']['level']);
+    }
+
+    public function testRunWithoutChildren(): void
+    {
+        $accountHierarchy = new GetAccountHierarchy($this->googleAdsClient);
+
+        $result = $accountHierarchy->run();
+
+        self::assertGreaterThanOrEqual(1, count($result));
+        self::assertArrayHasKey(
+            (string) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS'),
+            $result,
+            (string) json_encode($result)
+        );
+
+        $customer = $result[(int) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS')];
+
+        // check customer info
+        self::assertArrayHasKey('info', $customer);
+        self::assertArrayHasKey('id', $customer['info']);
+        self::assertArrayHasKey('descriptiveName', $customer['info']);
+        self::assertArrayHasKey('resourceName', $customer['info']);
+        self::assertArrayHasKey('level', $customer['info']);
+        self::assertEquals(0, $customer['info']['level']);
+
+        // check customer sub-accounts
+        self::assertArrayHasKey('children', $customer);
+        self::assertCount(0, $customer['children']);
     }
 }
