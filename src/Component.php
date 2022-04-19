@@ -56,7 +56,10 @@ class Component extends BaseComponent
      */
     protected function runListAccounts(): array
     {
-        $accountHierarchy = new GetAccountHierarchy($this->getGoogleAdsClient());
+        $accountHierarchy = new GetAccountHierarchy(
+            $this->getGoogleAdsClient(),
+            $this->getConfig()->getAccountChildren()
+        );
         return $accountHierarchy->run();
     }
 
