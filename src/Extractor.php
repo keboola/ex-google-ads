@@ -110,7 +110,9 @@ class Extractor
             . 'customer_client.time_zone';
 
         $query[] = ' FROM customer_client';
-        $query[] = ' WHERE customer_client.status = ENABLED';
+        if ($this->config->onlyEnabledCustomers()) {
+            $query[] = ' WHERE customer_client.status = ENABLED';
+        }
         $query[] = ' ORDER BY customer_client.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
@@ -184,7 +186,9 @@ class Extractor
 
         $query[] = 'FROM campaign';
         $where = [];
-        $where[] = 'campaign.status = ENABLED';
+        if ($this->config->onlyEnabledCustomers()) {
+            $where[] = 'campaign.status = ENABLED';
+        }
         if ($this->config->getSince() && $this->config->getUntil()) {
             $where[] = sprintf(
                 'segments.date BETWEEN "%s" AND "%s"',
