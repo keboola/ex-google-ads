@@ -24,6 +24,7 @@ class ConfigDefinition extends BaseConfigDefinition
                     ->end()
                     ->scalarPrototype()->end()
                 ->end()
+                ->booleanNode('onlyEnabledCustomers')->defaultTrue()->end()
                 ->scalarNode('since')->end()
                 ->scalarNode('until')->end()
                 ->scalarNode('#developerToken')->end()

@@ -72,6 +72,11 @@ class Config extends BaseConfig
         return $imageParameters['#developer_token'];
     }
 
+    public function onlyEnabledCustomers(): bool
+    {
+        return $this->getValue(['parameters', 'onlyEnabledCustomers'], true);
+    }
+
     protected function getDate(string $date, string $name): string
     {
         $time = strtotime($date);

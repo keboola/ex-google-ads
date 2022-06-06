@@ -45,6 +45,7 @@ class ConfigTest extends TestCase
                     'name' => 'testName',
                     'query' => 'testQuery',
                     'primary' => [],
+                    'onlyEnabledCustomers' => true,
                 ],
                 'image_parameters' => [
                     '#developer_token' => 'imageToken',
@@ -62,6 +63,7 @@ class ConfigTest extends TestCase
                     'until' => '20220203',
                     'query' => 'testQuery',
                     'primary' => [],
+                    'onlyEnabledCustomers' => true,
                 ],
                 'image_parameters' => [
                     '#developer_token' => 'imageToken',
@@ -82,6 +84,7 @@ class ConfigTest extends TestCase
                         'primary3',
                         'primary4',
                     ],
+                    'onlyEnabledCustomers' => true,
                 ],
                 'image_parameters' => [
                     '#developer_token' => 'imageToken',
@@ -98,6 +101,7 @@ class ConfigTest extends TestCase
                     'query' => 'testQuery',
                     'primary' => [],
                     '#developerToken' => 'paramsToken',
+                    'onlyEnabledCustomers' => true,
                 ],
                 'image_parameters' => [
                     '#developer_token' => 'imageToken',
