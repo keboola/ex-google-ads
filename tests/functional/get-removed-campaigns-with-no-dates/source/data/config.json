@@ -3,6 +3,8 @@
     "customerId": "%env(string:CUSTOMER_ID)%",
     "onlyEnabledCustomers": false,
     "name": "test-report",
+    "since": "",
+    "until": "",
     "query": "SELECT campaign.id, campaign.name, metrics.clicks, metrics.impressions FROM campaign"
   },
   "image_parameters": {
