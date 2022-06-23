@@ -9,6 +9,8 @@ use Keboola\Component\UserException;
 
 class Config extends BaseConfig
 {
+    public const RETRY_ATTEMPTS = 5;
+
     public function getName(): string
     {
         return $this->getValue(['parameters', 'name']);

@@ -20,6 +20,10 @@ use Keboola\Csv\CsvWriter;
 use Keboola\Csv\Exception;
 use Keboola\GoogleAds\Configuration\Config;
 use Psr\Log\LoggerInterface;
+use Retry\BackOff\ExponentialBackOffPolicy;
+use Retry\Policy\SimpleRetryPolicy;
+use Retry\RetryProxy;
+use Symfony\Component\Filesystem\Filesystem;
 
 class Extractor
 {
@@ -82,11 +86,25 @@ class Extractor
             // Download Report
             $this->logger->info('Downloading query report.');
             try {
-                $this->getReport(
-                    $customerId,
-                    $this->config->getQuery(),
-                    sprintf('report-%s', $this->config->getName())
-                );
+                $this->getRetryProxy()->call(function () use ($customerId): void {
+                    $tableName = sprintf('report-%s', $this->config->getName());
+                    $filePath = sprintf(
+                        '%s/out/tables/%s.csv',
+                        $this->dataDir,
+                        $tableName
+                    );
+
+                    $fs = new Filesystem();
+                    if ($fs->exists($filePath)) {
+                        $fs->remove($filePath);
+                    }
+
+                    $this->getReport(
+                        $customerId,
+                        $this->config->getQuery(),
+                        $tableName
+                    );
+                });
             } catch (ApiException $e) {
                 $this->logger->error(sprintf(
                     'Getting report for client "%s" failed: "%s".',
@@ -397,5 +415,17 @@ class Extractor
             );
         }
         return new CsvWriter($filePointer);
+    }
+
+    private function getRetryProxy(): RetryProxy
+    {
+        $policy = new SimpleRetryPolicy(
+            Config::RETRY_ATTEMPTS,
+            ['Exception', 'ErrorExceptions', 'ApiException']
+        );
+        $backoff = new ExponentialBackOffPolicy();
+        $retryProxy = new RetryProxy($policy, $backoff);
+
+        return $retryProxy;
     }
 }
