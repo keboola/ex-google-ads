@@ -214,7 +214,9 @@ class Extractor
                 $this->config->getUntil()
             );
         }
-        $query[] = 'WHERE ' . implode(' AND ', $where);
+        if (!empty($where)) {
+            $query[] = 'WHERE ' . implode(' AND ', $where);
+        }
         $query[] = 'ORDER BY campaign.id';
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
