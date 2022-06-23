@@ -1,3 +1,7 @@
 Extraction data of customer "Keboola Test".
 Downloading campaigns.
 Downloading query report.
+Primary keys "invalidPrimaryKey" are not valid. Expected keys: "campaignId, campaignName, metricsClicks, metricsImpressions". Retrying... [1x]
+Primary keys "invalidPrimaryKey" are not valid. Expected keys: "campaignId, campaignName, metricsClicks, metricsImpressions". Retrying... [2x]
+Primary keys "invalidPrimaryKey" are not valid. Expected keys: "campaignId, campaignName, metricsClicks, metricsImpressions". Retrying... [3x]
+Primary keys "invalidPrimaryKey" are not valid. Expected keys: "campaignId, campaignName, metricsClicks, metricsImpressions". Retrying... [4x]

@@ -424,7 +424,7 @@ class Extractor
             ['Exception', 'ErrorExceptions', 'ApiException']
         );
         $backoff = new ExponentialBackOffPolicy();
-        $retryProxy = new RetryProxy($policy, $backoff);
+        $retryProxy = new RetryProxy($policy, $backoff, $this->logger);
 
         return $retryProxy;
     }
