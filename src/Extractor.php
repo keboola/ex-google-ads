@@ -88,17 +88,6 @@ class Extractor
             try {
                 $this->getRetryProxy()->call(function () use ($customerId): void {
                     $tableName = sprintf('report-%s', $this->config->getName());
-                    $filePath = sprintf(
-                        '%s/out/tables/%s.csv',
-                        $this->dataDir,
-                        $tableName
-                    );
-
-                    $fs = new Filesystem();
-                    if ($fs->exists($filePath)) {
-                        $fs->remove($filePath);
-                    }
-
                     $this->getReport(
                         $customerId,
                         $this->config->getQuery(),
