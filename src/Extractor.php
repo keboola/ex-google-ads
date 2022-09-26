@@ -23,10 +23,11 @@ use Psr\Log\LoggerInterface;
 use Retry\BackOff\ExponentialBackOffPolicy;
 use Retry\Policy\SimpleRetryPolicy;
 use Retry\RetryProxy;
-use Symfony\Component\Filesystem\Filesystem;
 
 class Extractor
 {
+    private const CLIENT_TIMEOUT_MILLIS = 900;
+
     private const REPORT_PAGE_SIZE = 1000;
 
     private const CUSTOMER_TABLE = 'customer';
@@ -254,7 +255,14 @@ class Extractor
             ->search(
                 $customerId,
                 $query,
-                ['pageSize' => self::REPORT_PAGE_SIZE]
+                [
+                    'pageSize' => self::REPORT_PAGE_SIZE,
+                    'retrySettings' => [
+                        'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
+                        'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
+                        'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5
+                    ],
+                ]
             );
 
         $page = $search->getPage();
