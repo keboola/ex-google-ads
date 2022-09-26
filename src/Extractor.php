@@ -260,7 +260,7 @@ class Extractor
                     'retrySettings' => [
                         'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
                         'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
-                        'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5
+                        'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
                     ],
                 ]
             );
