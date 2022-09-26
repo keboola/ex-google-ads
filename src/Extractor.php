@@ -26,7 +26,7 @@ use Retry\RetryProxy;
 
 class Extractor
 {
-    private const CLIENT_TIMEOUT_MILLIS = 900;
+    private const CLIENT_TIMEOUT_MILLIS = 900000;
 
     private const REPORT_PAGE_SIZE = 1000;
 
