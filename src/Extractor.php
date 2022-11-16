@@ -13,6 +13,7 @@ use Google\Ads\GoogleAds\V10\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\PagedListResponse;
 use Google\Protobuf\Internal\Message;
+use GuzzleHttp\Exception\ConnectException;
 use Keboola\Component\Manifest\ManifestManager;
 use Keboola\Component\Manifest\ManifestManager\Options\OutTableManifestOptions;
 use Keboola\Component\UserException;
@@ -95,7 +96,7 @@ class Extractor
                         $tableName
                     );
                 });
-            } catch (ApiException $e) {
+            } catch (ApiException|ConnectException $e) {
                 $this->logger->error(sprintf(
                     'Getting report for client "%s" failed: "%s".',
                     $customer->getDescriptiveName(),
