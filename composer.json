@@ -5,9 +5,9 @@
     "require": {
         "php": "^7.4",
         "ext-json": "*",
-        "google/gax": "^1.11",
-        "google/protobuf": "^3.19",
-        "googleads/google-ads-php": "^14.0",
+        "google/gax": "^1.19",
+        "google/protobuf": "^3.22",
+        "googleads/google-ads-php": "^18.0",
         "guzzlehttp/guzzle": "^7.4",
         "keboola/csv": "^2.3",
         "keboola/php-component": "^8.1",

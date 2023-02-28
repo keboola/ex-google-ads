@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Keboola\GoogleAds;
 
-use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClient;
-use Google\Ads\GoogleAds\Lib\V10\GoogleAdsClientBuilder;
-use Google\Ads\GoogleAds\Lib\V10\GoogleAdsException;
-use Google\Ads\GoogleAds\Lib\V10\GoogleAdsServerStreamDecorator;
-use Google\Ads\GoogleAds\V10\Errors\GoogleAdsError;
-use Google\Ads\GoogleAds\V10\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V10\Services\CustomerServiceClient;
-use Google\Ads\GoogleAds\V10\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClient;
+use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClientBuilder;
+use Google\Ads\GoogleAds\Lib\V13\GoogleAdsException;
+use Google\Ads\GoogleAds\Lib\V13\GoogleAdsServerStreamDecorator;
+use Google\Ads\GoogleAds\V13\Errors\GoogleAdsError;
+use Google\Ads\GoogleAds\V13\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V13\Services\CustomerServiceClient;
+use Google\Ads\GoogleAds\V13\Services\GoogleAdsRow;
 use Google\ApiCore\ApiException;
 use Keboola\Component\UserException;
 

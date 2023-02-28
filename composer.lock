@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6ab190371265d84ed2aea339885a035",
+    "content-hash": "78a10f593c0bdd01b1eb0f5f2f772b0e",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -65,32 +65,34 @@
         },
         {
             "name": "google/auth",
-            "version": "v1.18.0",
+            "version": "v1.25.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-auth-library-php.git",
-                "reference": "21dd478e77b0634ed9e3a68613f74ed250ca9347"
+                "reference": "0865c44ab50378f7b145827dfcbd1e7a238f7759"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/21dd478e77b0634ed9e3a68613f74ed250ca9347",
-                "reference": "21dd478e77b0634ed9e3a68613f74ed250ca9347",
+                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/0865c44ab50378f7b145827dfcbd1e7a238f7759",
+                "reference": "0865c44ab50378f7b145827dfcbd1e7a238f7759",
                 "shasum": ""
             },
             "require": {
-                "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
-                "guzzlehttp/guzzle": "^5.3.1|^6.2.1|^7.0",
+                "firebase/php-jwt": "^5.5||^6.0",
+                "guzzlehttp/guzzle": "^6.2.1|^7.0",
                 "guzzlehttp/psr7": "^1.7|^2.0",
-                "php": ">=5.4",
-                "psr/cache": "^1.0|^2.0",
+                "php": "^7.1||^8.0",
+                "psr/cache": "^1.0|^2.0|^3.0",
                 "psr/http-message": "^1.0"
             },
             "require-dev": {
                 "guzzlehttp/promises": "0.1.1|^1.3",
                 "kelvinmo/simplejwt": "^0.2.5|^0.5.1",
                 "phpseclib/phpseclib": "^2.0.31",
-                "phpunit/phpunit": "^4.8.36|^5.7",
-                "sebastian/comparator": ">=1.2.3"
+                "phpspec/prophecy-phpunit": "^1.1||^2.0",
+                "phpunit/phpunit": "^7.5||^9.0.0",
+                "sebastian/comparator": ">=1.2.3",
+                "squizlabs/php_codesniffer": "^3.5"
             },
             "suggest": {
                 "phpseclib/phpseclib": "May be used in place of OpenSSL for signing strings or for token management. Please require version ^2."
@@ -113,11 +115,11 @@
                 "oauth2"
             ],
             "support": {
-                "docs": "https://googleapis.github.io/google-auth-library-php/master/",
+                "docs": "https://googleapis.github.io/google-auth-library-php/main/",
                 "issues": "https://github.com/googleapis/google-auth-library-php/issues",
-                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.18.0"
+                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.25.0"
             },
-            "time": "2021-08-24T18:03:18+00:00"
+            "time": "2023-01-26T22:04:14+00:00"
         },
         {
             "name": "google/common-protos",
@@ -164,34 +166,37 @@
         },
         {
             "name": "google/gax",
-            "version": "v1.11.4",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/gax-php.git",
-                "reference": "bf32dd04b5a31e6616f18bf62f49873ff16a340d"
+                "reference": "d537fd00dcdb1b5599386c1253ccb79e69d5d9f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/gax-php/zipball/bf32dd04b5a31e6616f18bf62f49873ff16a340d",
-                "reference": "bf32dd04b5a31e6616f18bf62f49873ff16a340d",
+                "url": "https://api.github.com/repos/googleapis/gax-php/zipball/d537fd00dcdb1b5599386c1253ccb79e69d5d9f2",
+                "reference": "d537fd00dcdb1b5599386c1253ccb79e69d5d9f2",
                 "shasum": ""
             },
             "require": {
-                "google/auth": "^1.18.0",
-                "google/common-protos": "^1.0||^2.0",
+                "google/auth": "1.19.1||^1.25.0",
+                "google/common-protos": "^1.3.1||^2.0||^3.0",
                 "google/grpc-gcp": "^0.2",
-                "google/protobuf": "^3.12.2",
+                "google/longrunning": "^0.2",
+                "google/protobuf": "^3.21.4",
                 "grpc/grpc": "^1.13",
                 "guzzlehttp/promises": "^1.3",
                 "guzzlehttp/psr7": "^1.7.0||^2",
-                "php": ">=5.5"
+                "php": ">=7.0"
             },
             "conflict": {
                 "ext-protobuf": "<3.7.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8.36",
-                "squizlabs/php_codesniffer": "3.*"
+                "phpspec/prophecy": "^1.10",
+                "phpunit/phpunit": "^5.5||^8.5",
+                "squizlabs/php_codesniffer": "3.*",
+                "yoast/phpunit-polyfills": "^1.0"
             },
             "type": "library",
             "autoload": {
@@ -211,9 +216,9 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/gax-php/issues",
-                "source": "https://github.com/googleapis/gax-php/tree/v1.11.4"
+                "source": "https://github.com/googleapis/gax-php/tree/v1.19.0"
             },
-            "time": "2022-01-26T19:06:45+00:00"
+            "time": "2023-01-27T00:30:03+00:00"
         },
         {
             "name": "google/grpc-gcp",
@@ -261,24 +266,68 @@
             "time": "2021-09-27T22:57:18+00:00"
         },
         {
-            "name": "google/protobuf",
-            "version": "v3.19.4",
+            "name": "google/longrunning",
+            "version": "v0.2.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/protocolbuffers/protobuf-php.git",
-                "reference": "6f0a54186f133aff98f49d0f36a32d4a4f7d4cbd"
+                "url": "https://github.com/googleapis/php-longrunning.git",
+                "reference": "651cbb7065bd77ae7395196695da391f641f739c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/6f0a54186f133aff98f49d0f36a32d4a4f7d4cbd",
-                "reference": "6f0a54186f133aff98f49d0f36a32d4a4f7d4cbd",
+                "url": "https://api.github.com/repos/googleapis/php-longrunning/zipball/651cbb7065bd77ae7395196695da391f641f739c",
+                "reference": "651cbb7065bd77ae7395196695da391f641f739c",
+                "shasum": ""
+            },
+            "require-dev": {
+                "google/gax": "^1.13.0",
+                "phpunit/phpunit": "^4.8|^5.0|^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "component": {
+                    "id": "longrunning",
+                    "path": "LongRunning",
+                    "entry": null,
+                    "target": "googleapis/php-longrunning"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Google\\LongRunning\\": "src/LongRunning",
+                    "Google\\ApiCore\\LongRunning\\": "src/ApiCore/LongRunning",
+                    "GPBMetadata\\Google\\Longrunning\\": "metadata/Longrunning"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Google LongRunning Client for PHP",
+            "support": {
+                "source": "https://github.com/googleapis/php-longrunning/tree/v0.2.4"
+            },
+            "time": "2023-02-10T16:10:50+00:00"
+        },
+        {
+            "name": "google/protobuf",
+            "version": "v3.22.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/protocolbuffers/protobuf-php.git",
+                "reference": "66495c7f8be461c4a65d697e0705a7ef55ca8c19"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/66495c7f8be461c4a65d697e0705a7ef55ca8c19",
+                "reference": "66495c7f8be461c4a65d697e0705a7ef55ca8c19",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5.0"
+                "php": ">=7.0.0"
             },
             "require-dev": {
-                "phpunit/phpunit": ">=4.8.0"
+                "phpunit/phpunit": ">=5.0.0"
             },
             "suggest": {
                 "ext-bcmath": "Need to support JSON deserialization"
@@ -300,30 +349,29 @@
                 "proto"
             ],
             "support": {
-                "issues": "https://github.com/protocolbuffers/protobuf-php/issues",
-                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v3.19.4"
+                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v3.22.0"
             },
-            "time": "2022-01-28T17:23:32+00:00"
+            "time": "2023-02-10T20:00:39+00:00"
         },
         {
             "name": "googleads/google-ads-php",
-            "version": "v14.0.0",
+            "version": "v18.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/google-ads-php.git",
-                "reference": "c6d3ab04960ec97d00d7ab19f6ac6be176092925"
+                "reference": "cc0e5729313ded597100622a36261ef0bba52064"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/c6d3ab04960ec97d00d7ab19f6ac6be176092925",
-                "reference": "c6d3ab04960ec97d00d7ab19f6ac6be176092925",
+                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/cc0e5729313ded597100622a36261ef0bba52064",
+                "reference": "cc0e5729313ded597100622a36261ef0bba52064",
                 "shasum": ""
             },
             "require": {
-                "google/gax": "^1.7.0",
-                "google/protobuf": "^3.19.4",
+                "google/gax": "^1.13.0",
+                "google/protobuf": "^3.21.5",
                 "grpc/grpc": "^1.36.0",
-                "monolog/monolog": "^1.26 || ^2.0",
+                "monolog/monolog": "^1.26 || ^2.0 || ^3.0",
                 "php": ">=7.4"
             },
             "require-dev": {
@@ -364,9 +412,9 @@
             "homepage": "https://github.com/googleads/google-ads-php",
             "support": {
                 "issues": "https://github.com/googleads/google-ads-php/issues",
-                "source": "https://github.com/googleads/google-ads-php/tree/v14.0.0"
+                "source": "https://github.com/googleads/google-ads-php/tree/v18.0.0"
             },
-            "time": "2022-02-15T07:07:11+00:00"
+            "time": "2023-02-22T16:36:08+00:00"
         },
         {
             "name": "grpc/grpc",
