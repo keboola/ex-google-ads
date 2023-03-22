@@ -11,6 +11,7 @@ use Google\Ads\GoogleAds\V13\Resources\CustomerClient;
 use Google\Ads\GoogleAds\V13\Services\GoogleAdsRow;
 use Google\Ads\GoogleAds\V13\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
+use Google\ApiCore\ApiStatus;
 use Google\ApiCore\PagedListResponse;
 use Google\Protobuf\Internal\Message;
 use GuzzleHttp\Exception\ConnectException;
@@ -126,7 +127,15 @@ class Extractor
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
             $customerId,
-            implode(' ', $query)
+            implode(' ', $query),
+            [
+                'retrySettings' => [
+                    'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
+                    'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
+                    'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
+                    'retryableCodes' => [ApiStatus::INTERNAL],
+                ],
+            ]
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
