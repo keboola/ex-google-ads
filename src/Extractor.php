@@ -40,6 +40,11 @@ class Extractor
         self::CUSTOMER_TABLE => ['id'],
         self::CAMPAIGN_TABLE => ['customerId', 'id'],
     ];
+    const RETRY_SETTINGS = [
+        'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
+        'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
+        'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
+    ];
 
     private GoogleAdsClient $googleAdsClient;
 
@@ -129,12 +134,12 @@ class Extractor
             $customerId,
             implode(' ', $query),
             [
-                'retrySettings' => [
-                    'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
-                    'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
-                    'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
-                    'retryableCodes' => [ApiStatus::INTERNAL],
-                ],
+                'retrySettings' => array_merge(
+                    self::RETRY_SETTINGS,
+                    [
+                        'retryableCodes' => [ApiStatus::INTERNAL],
+                    ]
+                ),
             ]
         );
 
@@ -221,7 +226,10 @@ class Extractor
 
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
             $customerId,
-            implode(' ', $query)
+            implode(' ', $query),
+            [
+                'retrySettings' => self::RETRY_SETTINGS
+            ]
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
@@ -267,11 +275,7 @@ class Extractor
                 $query,
                 [
                     'pageSize' => self::REPORT_PAGE_SIZE,
-                    'retrySettings' => [
-                        'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
-                        'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
-                        'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
-                    ],
+                    'retrySettings' => self::RETRY_SETTINGS
                 ]
             );
 
