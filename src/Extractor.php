@@ -40,7 +40,7 @@ class Extractor
         self::CUSTOMER_TABLE => ['id'],
         self::CAMPAIGN_TABLE => ['customerId', 'id'],
     ];
-    const RETRY_SETTINGS = [
+    private const RETRY_SETTINGS = [
         'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
         'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
         'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
@@ -228,7 +228,7 @@ class Extractor
             $customerId,
             implode(' ', $query),
             [
-                'retrySettings' => self::RETRY_SETTINGS
+                'retrySettings' => self::RETRY_SETTINGS,
             ]
         );
 
@@ -275,7 +275,7 @@ class Extractor
                 $query,
                 [
                     'pageSize' => self::REPORT_PAGE_SIZE,
-                    'retrySettings' => self::RETRY_SETTINGS
+                    'retrySettings' => self::RETRY_SETTINGS,
                 ]
             );
 
