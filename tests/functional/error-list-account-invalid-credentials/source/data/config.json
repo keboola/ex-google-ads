@@ -1,0 +1,16 @@
+{
+  "action": "listAccounts",
+  "parameters": {},
+  "image_parameters": {
+    "#developer_token": "%env(string:DEVELOPER_TOKEN)%"
+  },
+  "authorization": {
+    "oauth_api": {
+      "credentials": {
+        "#data": "{\"refresh_token\": \"invalidToken\"}",
+        "#appSecret": "%env(string:CLIENT_SECRET)%",
+        "appKey": "%env(string:CLIENT_ID)%"
+      }
+    }
+  }
+}

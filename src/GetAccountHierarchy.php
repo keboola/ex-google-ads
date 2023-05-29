@@ -13,6 +13,7 @@ use Google\Ads\GoogleAds\V13\Resources\CustomerClient;
 use Google\Ads\GoogleAds\V13\Services\CustomerServiceClient;
 use Google\Ads\GoogleAds\V13\Services\GoogleAdsRow;
 use Google\ApiCore\ApiException;
+use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\UserException;
 
 class GetAccountHierarchy
@@ -62,6 +63,11 @@ class GetAccountHierarchy
             throw new UserException(sprintf(
                 "ApiException was thrown with message '%s'.",
                 $apiException->getMessage()
+            ));
+        } catch (ClientException $clientException) {
+            throw new UserException(sprintf(
+                "ClientException was thrown with message '%s'.",
+                $clientException->getMessage()
             ));
         }
 
