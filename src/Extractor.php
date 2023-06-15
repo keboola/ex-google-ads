@@ -87,13 +87,13 @@ class Extractor
         foreach ($this->getAndSaveCustomers($rootCustomerId) as $customer) {
             $customerId = (string) $customer->getId();
             $this->logger->info(sprintf('Extraction data of customer "%s".', $customer->getDescriptiveName()));
-
-            $this->logger->info('Downloading campaigns.');
-            $this->getAndSaveCampaigns($customerId);
-
-            // Download Report
-            $this->logger->info('Downloading query report.');
             try {
+                $this->logger->info('Downloading campaigns.');
+                $this->getAndSaveCampaigns($customerId);
+
+                // Download Report
+                $this->logger->info('Downloading query report.');
+
                 $this->getRetryProxy()->call(function () use ($customerId): void {
                     $tableName = sprintf('report-%s', $this->config->getName());
                     $this->getReport(
@@ -104,8 +104,9 @@ class Extractor
                 });
             } catch (ApiException|ConnectException $e) {
                 $this->logger->error(sprintf(
-                    'Getting report for client "%s" failed: "%s".',
+                    'Fetching the report for client "%s" with ID "%s" failed: "%s".',
                     $customer->getDescriptiveName(),
+                    $customerId,
                     $e->getMessage()
                 ));
             }
