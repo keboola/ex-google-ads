@@ -62,16 +62,17 @@ class GetAccountHierarchy
         } catch (ApiException $apiException) {
             throw new UserException(sprintf(
                 "ApiException was thrown with message '%s'.",
-                $apiException->getMessage()
+                $apiException->getMessage(),
             ));
         } catch (ClientException $clientException) {
             throw new UserException(sprintf(
                 "ClientException was thrown with message '%s'.",
-                $clientException->getMessage()
+                $clientException->getMessage(),
             ));
         }
 
         $result = [];
+        /** @var array $customerIdsToChildAccounts */
         foreach ($allHierarchies as $rootCustomerId => $customerIdsToChildAccounts) {
             $result[$rootCustomerId] =
                 self::buildAccountHierarchy(self::$rootCustomerClients[$rootCustomerId], $customerIdsToChildAccounts);
@@ -87,7 +88,7 @@ class GetAccountHierarchy
         $googleAdsClient = (new GoogleAdsClientBuilder())
             ->withOAuth2Credential($this->googleAdsClient->getOAuth2Credential())
             ->withDeveloperToken($this->googleAdsClient->getDeveloperToken())
-            ->withLoginCustomerId($loginCustomerId ?? $rootCustomerId)
+            ->withLoginCustomerId($rootCustomerId)
             ->build();
 
         $googleAdsServiceClient = $googleAdsClient->getGoogleAdsServiceClient();
@@ -97,7 +98,7 @@ class GetAccountHierarchy
             . ' customer_client.manager, customer_client.descriptive_name,'
             . ' customer_client.id FROM customer_client'
             . ' WHERE customer_client.level <= %d AND customer_client.status = ENABLED',
-            $this->getAccountChildren === true ? 1 : 0
+            $this->getAccountChildren === true ? 1 : 0,
         );
 
         $rootCustomerClient = null;
@@ -111,7 +112,7 @@ class GetAccountHierarchy
             /** @var GoogleAdsServerStreamDecorator $stream */
             $stream = $googleAdsServiceClient->searchStream(
                 (string) $customerIdToSearch,
-                $query
+                $query,
             );
 
             foreach ($stream->iterateAllElements() as $googleAdsRow) {
@@ -136,7 +137,7 @@ class GetAccountHierarchy
                 if ($customerClient->getManager()) {
                     $alreadyVisited = array_key_exists(
                         $customerClient->getId(),
-                        $customerIdsToChildAccounts
+                        $customerIdsToChildAccounts,
                     );
                     if (!$alreadyVisited && $customerClient->getLevel() === 1) {
                         array_push($managerCustomerIdsToSearch, $customerClient->getId());
@@ -157,6 +158,7 @@ class GetAccountHierarchy
         $accessibleCustomers = $customerServiceClient->listAccessibleCustomers();
 
         $accessibleCustomerIds = [];
+        /** @var string $customerResourceName */
         foreach ($accessibleCustomers->getResourceNames() as $customerResourceName) {
             $customer = CustomerServiceClient::parseName($customerResourceName)['customer_id'];
             $accessibleCustomerIds[] = intval($customer);
@@ -167,12 +169,12 @@ class GetAccountHierarchy
 
 
     /**
-     * @param array<string, mixed> $customerIdsToChildAccounts
+     * @param array<string, array<int, CustomerClient>> $customerIdsToChildAccounts
      * @return array<string, mixed>
      */
     private static function buildAccountHierarchy(
         CustomerClient $customerClient,
-        array $customerIdsToChildAccounts
+        array $customerIdsToChildAccounts,
     ): array {
         $customerId = $customerClient->getId();
         $customer = [
