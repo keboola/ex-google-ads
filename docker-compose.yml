@@ -6,6 +6,7 @@ services:
       - ./:/code
       - ./data:/data
     environment:
+      - KBC_COMPONENT_RUN_MODE=run
       - CLIENT_ID
       - CLIENT_SECRET
       - API_DATA
