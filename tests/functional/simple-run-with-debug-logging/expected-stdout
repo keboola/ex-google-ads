@@ -2,6 +2,6 @@
 [%s] DEBUG: Call query: "SELECT customer_client.id, customer_client.manager, customer_client.descriptive_name, customer_client.currency_code, customer_client.time_zone  FROM customer_client  WHERE customer_client.status = ENABLED  ORDER BY customer_client.id" [] []
 Extraction data of customer "Keboola Test".
 Downloading campaigns.
-[%s] DEBUG: Call query: "SELECT campaign.id, campaign.name, campaign.status, campaign.serving_status, campaign.ad_serving_optimization_status, campaign.advertising_channel_type, campaign.start_date, campaign.end_date FROM campaign WHERE campaign.status = ENABLED AND segments.date BETWEEN "2023-11-02" AND "2023-11-02" ORDER BY campaign.id" [] []
+[%s] DEBUG: Call query: "SELECT campaign.id, campaign.name, campaign.status, campaign.serving_status, campaign.ad_serving_optimization_status, campaign.advertising_channel_type, campaign.start_date, campaign.end_date FROM campaign WHERE campaign.status = ENABLED AND segments.date BETWEEN "%s" AND "%s" ORDER BY campaign.id" [] []
 Downloading query report.
 [%s] DEBUG: Call query: "SELECT campaign.id, campaign.name, metrics.clicks, metrics.impressions FROM campaign WHERE segments.date BETWEEN "%s" AND "%s"" [] []
