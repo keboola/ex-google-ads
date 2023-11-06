@@ -8,6 +8,7 @@ use Google\Ads\GoogleAds\Lib\Configuration;
 use Google\Ads\GoogleAds\Lib\OAuth2TokenBuilder;
 use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClient;
 use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClientBuilder;
+use Google\Auth\Credentials\UserRefreshCredentials;
 use Keboola\GoogleAds\GetAccountHierarchy;
 use PHPUnit\Framework\TestCase;
 
@@ -19,6 +20,7 @@ class GetAccountHierarchyTest extends TestCase
     {
         parent::setUp();
 
+        /** @var array{refresh_token: string} $credentialsData */
         $credentialsData = json_decode((string) getenv('API_DATA'), true);
 
         $oauthConfiguration = new Configuration([
@@ -29,6 +31,7 @@ class GetAccountHierarchyTest extends TestCase
             ],
         ]);
 
+        /** @var UserRefreshCredentials $oauth */
         $oauth = (new OAuth2TokenBuilder())->from($oauthConfiguration)->build();
 
         $this->googleAdsClient = (new GoogleAdsClientBuilder())
@@ -47,7 +50,7 @@ class GetAccountHierarchyTest extends TestCase
         self::assertArrayHasKey(
             (string) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS'),
             $result,
-            (string) json_encode($result)
+            (string) json_encode($result),
         );
 
         $customer = $result[(int) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS')];
@@ -83,7 +86,7 @@ class GetAccountHierarchyTest extends TestCase
         self::assertArrayHasKey(
             (string) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS'),
             $result,
-            (string) json_encode($result)
+            (string) json_encode($result),
         );
 
         $customer = $result[(int) getenv('CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS')];

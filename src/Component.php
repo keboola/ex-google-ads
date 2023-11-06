@@ -31,7 +31,7 @@ class Component extends BaseComponent
                 $this->getLogger(),
                 $this->getManifestManager(),
                 $this->getDataDir(),
-                $customersIdDownloaded
+                $customersIdDownloaded,
             );
 
             try {
@@ -45,7 +45,7 @@ class Component extends BaseComponent
                 throw new UserException(sprintf(
                     '%s: %s',
                     $e->getStatus(),
-                    $message['message'] ?? $e->getMessage()
+                    $message['message'] ?? $e->getMessage(),
                 ));
             }
         }
@@ -58,7 +58,7 @@ class Component extends BaseComponent
     {
         $accountHierarchy = new GetAccountHierarchy(
             $this->getGoogleAdsClient(),
-            $this->getConfig()->getAccountChildren()
+            $this->getConfig()->getAccountChildren(),
         );
         return $accountHierarchy->run();
     }

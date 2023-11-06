@@ -68,7 +68,7 @@ class Extractor
         LoggerInterface $logger,
         ManifestManager $manifestManager,
         string $dataDir,
-        array $customersIdDownloaded
+        array $customersIdDownloaded,
     ) {
         $this->googleAdsClient = $googleAdsClient;
         $this->config = $config;
@@ -99,7 +99,7 @@ class Extractor
                     $this->getReport(
                         $customerId,
                         $this->config->getQuery(),
-                        $tableName
+                        $tableName,
                     );
                 });
             } catch (ApiException|ConnectException $e) {
@@ -107,7 +107,7 @@ class Extractor
                     'Fetching the report for client "%s" with ID "%s" failed: "%s".',
                     $customer->getDescriptiveName(),
                     $customerId,
-                    $e->getMessage()
+                    $e->getMessage(),
                 ));
             }
             $this->customersIdDownloaded[] = $customerId;
@@ -139,9 +139,9 @@ class Extractor
                     self::RETRY_SETTINGS,
                     [
                         'retryableCodes' => [ApiStatus::INTERNAL],
-                    ]
+                    ],
                 ),
-            ]
+            ],
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
@@ -150,7 +150,7 @@ class Extractor
         $csvCustomer = $this->openCsvFile(sprintf(
             '%s/out/tables/%s.csv',
             $this->dataDir,
-            self::CUSTOMER_TABLE
+            self::CUSTOMER_TABLE,
         ));
 
         // Create manifest for Customer
@@ -162,7 +162,7 @@ class Extractor
 
         $this->manifestManager->writeTableManifest(
             sprintf('%s.csv', self::CUSTOMER_TABLE),
-            $manifestOptions
+            $manifestOptions,
         );
 
         foreach ($search->iterateAllElements() as $result) {
@@ -178,7 +178,7 @@ class Extractor
             if (in_array($customerId, $this->customersIdDownloaded)) {
                 $this->logger->info(sprintf(
                     'Customer "%s" already downloaded.',
-                    $result->getCustomerClient()->getDescriptiveName()
+                    $result->getCustomerClient()->getDescriptiveName(),
                 ));
                 continue;
             }
@@ -194,7 +194,7 @@ class Extractor
         $csvCampaign = $this->openCsvFile(sprintf(
             '%s/out/tables/%s.csv',
             $this->dataDir,
-            self::CAMPAIGN_TABLE
+            self::CAMPAIGN_TABLE,
         ));
 
         $query = [];
@@ -217,7 +217,7 @@ class Extractor
             $where[] = sprintf(
                 'segments.date BETWEEN "%s" AND "%s"',
                 $this->config->getSince(),
-                $this->config->getUntil()
+                $this->config->getUntil(),
             );
         }
         if (!empty($where)) {
@@ -230,7 +230,7 @@ class Extractor
             implode(' ', $query),
             [
                 'retrySettings' => self::RETRY_SETTINGS,
-            ]
+            ],
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
@@ -242,7 +242,7 @@ class Extractor
             $parsedCampaign = $this->parseResponse($campaign, $listColumns);
             $csvCampaign->writeRow(array_merge(
                 ['customerId' => $customerId],
-                $parsedCampaign
+                $parsedCampaign,
             ));
         }
 
@@ -255,7 +255,7 @@ class Extractor
 
         $this->manifestManager->writeTableManifest(
             sprintf('%s.csv', self::CAMPAIGN_TABLE),
-            $manifestOptions
+            $manifestOptions,
         );
     }
 
@@ -265,7 +265,7 @@ class Extractor
             $query .= sprintf(
                 ' WHERE segments.date BETWEEN "%s" AND "%s"',
                 $this->config->getSince(),
-                $this->config->getUntil()
+                $this->config->getUntil(),
             );
         }
 
@@ -277,7 +277,7 @@ class Extractor
                 [
                     'pageSize' => self::REPORT_PAGE_SIZE,
                     'retrySettings' => self::RETRY_SETTINGS,
-                ]
+                ],
             );
 
         $page = $search->getPage();
@@ -288,7 +288,7 @@ class Extractor
         $csv = $this->openCsvFile(sprintf(
             '%s/out/tables/%s.csv',
             $this->dataDir,
-            $tableName
+            $tableName,
         ));
 
         $listColumns = $this->getColumnsFromSearch($search);
@@ -324,7 +324,7 @@ class Extractor
 
         $this->manifestManager->writeTableManifest(
             sprintf('%s.csv', $tableName),
-            $manifestOptions
+            $manifestOptions,
         );
     }
 
@@ -380,7 +380,7 @@ class Extractor
             throw new UserException(sprintf(
                 'Primary keys "%s" are not valid. Expected keys: "%s"',
                 implode(', ', $invalidPrimaryKeys),
-                implode(', ', $columns)
+                implode(', ', $columns),
             ));
         }
     }
@@ -425,7 +425,7 @@ class Extractor
             $message = !is_null(error_get_last()) ? error_get_last()['message'] : '';
             throw new Exception(
                 "Cannot open file {$fileName} " . $message,
-                Exception::FILE_NOT_EXISTS
+                Exception::FILE_NOT_EXISTS,
             );
         }
         return new CsvWriter($filePointer);
@@ -435,7 +435,7 @@ class Extractor
     {
         $policy = new SimpleRetryPolicy(
             Config::RETRY_ATTEMPTS,
-            ['Exception', 'ErrorExceptions', 'ApiException']
+            ['Exception', 'ErrorExceptions', 'ApiException'],
         );
         $backoff = new ExponentialBackOffPolicy();
         $retryProxy = new RetryProxy($policy, $backoff, $this->logger);

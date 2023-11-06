@@ -1,0 +1,96 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Cannot access offset 'message' on mixed\\.$#"
+			count: 1
+			path: src/Component.php
+
+		-
+			message: "#^Cannot access offset 'refresh_token' on mixed\\.$#"
+			count: 1
+			path: src/Component.php
+
+		-
+			message: "#^Parameter \\#1 \\$oAuth2Credential of method Google\\\\Ads\\\\GoogleAds\\\\Lib\\\\V13\\\\GoogleAdsClientBuilder\\:\\:withOAuth2Credential\\(\\) expects Google\\\\Auth\\\\FetchAuthTokenInterface, mixed given\\.$#"
+			count: 1
+			path: src/Component.php
+
+		-
+			message: "#^Parameter \\#3 \\.\\.\\.\\$values of function sprintf expects bool\\|float\\|int\\|string\\|null, mixed given\\.$#"
+			count: 1
+			path: src/Component.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getAccountChildren\\(\\) should return bool but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getDeveloperToken\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getName\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getPrimaryKeys\\(\\) should return array\\<int, string\\> but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getQuery\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:onlyEnabledCustomers\\(\\) should return bool but returns mixed\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Parameter \\#1 \\$date of method Keboola\\\\GoogleAds\\\\Configuration\\\\Config\\:\\:getDate\\(\\) expects string, mixed given\\.$#"
+			count: 2
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function array_map expects array, mixed given\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Parameter \\#3 \\$subject of function str_replace expects array\\|string, mixed given\\.$#"
+			count: 1
+			path: src/Configuration/Config.php
+
+		-
+			message: "#^Call to an undefined method Traversable\\<mixed, mixed\\>\\:\\:current\\(\\)\\.$#"
+			count: 1
+			path: src/Extractor.php
+
+		-
+			message: "#^Call to an undefined method Traversable\\<mixed, mixed\\>\\:\\:next\\(\\)\\.$#"
+			count: 1
+			path: src/Extractor.php
+
+		-
+			message: "#^Call to an undefined method Traversable\\<mixed, mixed\\>\\:\\:valid\\(\\)\\.$#"
+			count: 1
+			path: src/Extractor.php
+
+		-
+			message: "#^Method Keboola\\\\GoogleAds\\\\Extractor\\:\\:processResultRow\\(\\) should return array\\<string, string\\> but returns array\\<string, mixed\\>\\.$#"
+			count: 1
+			path: src/Extractor.php
+
+		-
+			message: "#^Parameter \\#1 \\$data of method Keboola\\\\GoogleAds\\\\Extractor\\:\\:processResultRow\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/Extractor.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function array_key_exists expects array, mixed given\\.$#"
+			count: 1
+			path: src/Extractor.php
