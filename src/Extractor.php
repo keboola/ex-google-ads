@@ -131,6 +131,7 @@ class Extractor
         }
         $query[] = ' ORDER BY customer_client.id';
 
+        $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
             $customerId,
             implode(' ', $query),
@@ -225,6 +226,7 @@ class Extractor
         }
         $query[] = 'ORDER BY campaign.id';
 
+        $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
             $customerId,
             implode(' ', $query),
@@ -269,6 +271,7 @@ class Extractor
             );
         }
 
+        $this->logger->debug(sprintf('Call query: "%s"', $query));
         $search = $this->googleAdsClient
             ->getGoogleAdsServiceClient()
             ->search(

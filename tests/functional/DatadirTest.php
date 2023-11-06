@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\GoogleAds\FunctionalTests;
 
 use Keboola\DatadirTests\DatadirTestCase;
+use RuntimeException;
 use Symfony\Component\Finder\Finder;
 use Throwable;
 
@@ -14,6 +15,28 @@ class DatadirTest extends DatadirTestCase
     {
         $this->prettifyAllManifests($actual);
         parent::assertDirectoryContentsSame($expected, $actual);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        putenv('KBC_COMPONENT_RUN_MODE=run');
+
+        // Test dir, eg. "/code/tests/functional/full-load-ok"
+        $this->testProjectDir = $this->getTestFileDir() . '/' . $this->dataName();
+
+        // Load setUp.php file - used to init database state
+        $setUpPhpFile = $this->testProjectDir . '/setUp.php';
+        if (file_exists($setUpPhpFile)) {
+            // Get callback from file and check it
+            $initCallback = require $setUpPhpFile;
+            if (!is_callable($initCallback)) {
+                throw new RuntimeException(sprintf('File "%s" must return callback!', $setUpPhpFile));
+            }
+
+            // Invoke callback
+            $initCallback($this);
+        }
     }
 
     protected function prettifyAllManifests(string $actual): void
