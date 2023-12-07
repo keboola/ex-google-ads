@@ -14,6 +14,7 @@ use Google\ApiCore\ApiException;
 use Google\ApiCore\ApiStatus;
 use Google\ApiCore\PagedListResponse;
 use Google\Protobuf\Internal\Message;
+use Google\Rpc\Code;
 use GuzzleHttp\Exception\ConnectException;
 use Keboola\Component\Manifest\ManifestManager;
 use Keboola\Component\Manifest\ManifestManager\Options\OutTableManifestOptions;
@@ -139,7 +140,7 @@ class Extractor
                 'retrySettings' => array_merge(
                     self::RETRY_SETTINGS,
                     [
-                        'retryableCodes' => [ApiStatus::INTERNAL],
+                        'retryableCodes' => [ApiStatus::INTERNAL, Code::INTERNAL],
                     ],
                 ),
             ],
