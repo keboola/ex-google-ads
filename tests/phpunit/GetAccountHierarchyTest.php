@@ -6,8 +6,8 @@ namespace Keboola\GoogleAds\Tests;
 
 use Google\Ads\GoogleAds\Lib\Configuration;
 use Google\Ads\GoogleAds\Lib\OAuth2TokenBuilder;
-use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClient;
-use Google\Ads\GoogleAds\Lib\V13\GoogleAdsClientBuilder;
+use Google\Ads\GoogleAds\Lib\V15\GoogleAdsClient;
+use Google\Ads\GoogleAds\Lib\V15\GoogleAdsClientBuilder;
 use Google\Auth\Credentials\UserRefreshCredentials;
 use Keboola\GoogleAds\GetAccountHierarchy;
 use PHPUnit\Framework\TestCase;
