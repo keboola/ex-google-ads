@@ -15,6 +15,7 @@ class ConfigDefinition extends BaseConfigDefinition
         // @formatter:off
         /** @noinspection NullPointerExceptionInspection */
         $parametersNode
+            ->ignoreExtraKeys(false)
             ->children()
                 ->arrayNode('customerId')
                     ->isRequired()

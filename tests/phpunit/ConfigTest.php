@@ -109,6 +109,23 @@ class ConfigTest extends TestCase
             ],
             'paramsToken',
         ];
+
+        yield 'min-config-with-extra-keys' => [
+            [
+                'parameters' => [
+                    'extraKeys' => '1234567890',
+                    'customerId' => ['1234567890'],
+                    'name' => 'testName',
+                    'query' => 'testQuery',
+                    'primary' => [],
+                    'onlyEnabledCustomers' => true,
+                ],
+                'image_parameters' => [
+                    '#developer_token' => 'imageToken',
+                ],
+            ],
+            'imageToken',
+        ];
     }
 
     public function invalidConfigDataProvider(): Generator
