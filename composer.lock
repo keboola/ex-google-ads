@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1bc46240a94a68fba0c33f9ee4e13141",
+    "content-hash": "2422af6cceda7d7a81fb43259463567f",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -369,24 +369,24 @@
         },
         {
             "name": "googleads/google-ads-php",
-            "version": "v21.1.0",
+            "version": "v23.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/google-ads-php.git",
-                "reference": "d60ce0aaf773b054bd3c7b3e6e6baa9710246238"
+                "reference": "aa2709eda1d62009cf28c4a68f55b1ba296c2cc2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/d60ce0aaf773b054bd3c7b3e6e6baa9710246238",
-                "reference": "d60ce0aaf773b054bd3c7b3e6e6baa9710246238",
+                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/aa2709eda1d62009cf28c4a68f55b1ba296c2cc2",
+                "reference": "aa2709eda1d62009cf28c4a68f55b1ba296c2cc2",
                 "shasum": ""
             },
             "require": {
                 "google/gax": "^1.19.1",
-                "google/protobuf": "^3.21.5",
+                "google/protobuf": "^3.21.5 || ^4.26",
                 "grpc/grpc": "^1.36.0",
                 "monolog/monolog": "^1.26 || ^2.0 || ^3.0",
-                "php": ">=8.0"
+                "php": ">=8.1"
             },
             "require-dev": {
                 "composer/composer": "^2.0",
@@ -426,9 +426,9 @@
             "homepage": "https://github.com/googleads/google-ads-php",
             "support": {
                 "issues": "https://github.com/googleads/google-ads-php/issues",
-                "source": "https://github.com/googleads/google-ads-php/tree/v21.1.0"
+                "source": "https://github.com/googleads/google-ads-php/tree/v23.0.0"
             },
-            "time": "2023-10-19T18:19:08+00:00"
+            "time": "2024-04-25T15:41:00+00:00"
         },
         {
             "name": "grpc/grpc",
@@ -4064,12 +4064,12 @@
             "version": "3.7.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
+                "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
                 "reference": "ed8e00df0a83aa96acf703f8c2979ff33341f879"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/ed8e00df0a83aa96acf703f8c2979ff33341f879",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/ed8e00df0a83aa96acf703f8c2979ff33341f879",
                 "reference": "ed8e00df0a83aa96acf703f8c2979ff33341f879",
                 "shasum": ""
             },
