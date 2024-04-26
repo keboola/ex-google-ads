@@ -113,7 +113,7 @@ class GetAccountHierarchy
 
             $request = new SearchGoogleAdsStreamRequest([
                 'customer_id' => $customerIdToSearch,
-                'query' => $query
+                'query' => $query,
             ]);
 
             /** @var GoogleAdsServerStreamDecorator $stream */
