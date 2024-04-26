@@ -8,10 +8,12 @@ use Google\Ads\GoogleAds\Lib\V16\GoogleAdsClient;
 use Google\Ads\GoogleAds\Lib\V16\GoogleAdsClientBuilder;
 use Google\Ads\GoogleAds\Lib\V16\GoogleAdsException;
 use Google\Ads\GoogleAds\Lib\V16\GoogleAdsServerStreamDecorator;
+use Google\Ads\GoogleAds\V15\Services\CustomerServiceClient;
 use Google\Ads\GoogleAds\V16\Errors\GoogleAdsError;
 use Google\Ads\GoogleAds\V16\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V16\Services\CustomerServiceClient;
 use Google\Ads\GoogleAds\V16\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V16\Services\ListAccessibleCustomersRequest;
+use Google\Ads\GoogleAds\V16\Services\SearchGoogleAdsStreamRequest;
 use Google\ApiCore\ApiException;
 use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\UserException;
@@ -109,11 +111,13 @@ class GetAccountHierarchy
         while (!empty($managerCustomerIdsToSearch)) {
             $customerIdToSearch = array_shift($managerCustomerIdsToSearch);
 
+            $request = new SearchGoogleAdsStreamRequest([
+                'customer_id' => $customerIdToSearch,
+                'query' => $query
+            ]);
+
             /** @var GoogleAdsServerStreamDecorator $stream */
-            $stream = $googleAdsServiceClient->searchStream(
-                (string) $customerIdToSearch,
-                $query,
-            );
+            $stream = $googleAdsServiceClient->searchStream((request));
 
             foreach ($stream->iterateAllElements() as $googleAdsRow) {
                 /** @var GoogleAdsRow $googleAdsRow */
@@ -155,7 +159,7 @@ class GetAccountHierarchy
     private static function getAccessibleCustomers(GoogleAdsClient $googleAdsClient): array
     {
         $customerServiceClient = $googleAdsClient->getCustomerServiceClient();
-        $accessibleCustomers = $customerServiceClient->listAccessibleCustomers();
+        $accessibleCustomers = $customerServiceClient->listAccessibleCustomers(new ListAccessibleCustomersRequest());
 
         $accessibleCustomerIds = [];
         /** @var string $customerResourceName */
