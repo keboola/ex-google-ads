@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Keboola\GoogleAds;
 
-use Google\Ads\GoogleAds\Lib\V15\GoogleAdsClient;
-use Google\Ads\GoogleAds\Lib\V15\GoogleAdsClientBuilder;
-use Google\Ads\GoogleAds\Lib\V15\GoogleAdsException;
-use Google\Ads\GoogleAds\Lib\V15\GoogleAdsServerStreamDecorator;
-use Google\Ads\GoogleAds\V15\Errors\GoogleAdsError;
-use Google\Ads\GoogleAds\V15\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V15\Services\CustomerServiceClient;
-use Google\Ads\GoogleAds\V15\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\Lib\V17\GoogleAdsClient;
+use Google\Ads\GoogleAds\Lib\V17\GoogleAdsClientBuilder;
+use Google\Ads\GoogleAds\Lib\V17\GoogleAdsException;
+use Google\Ads\GoogleAds\Lib\V17\GoogleAdsServerStreamDecorator;
+use Google\Ads\GoogleAds\V17\Errors\GoogleAdsError;
+use Google\Ads\GoogleAds\V17\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V17\Services\Client\CustomerServiceClient;
+use Google\Ads\GoogleAds\V17\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V17\Services\ListAccessibleCustomersRequest;
+use Google\Ads\GoogleAds\V17\Services\SearchGoogleAdsStreamRequest;
 use Google\ApiCore\ApiException;
 use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\UserException;
@@ -110,10 +112,10 @@ class GetAccountHierarchy
             $customerIdToSearch = array_shift($managerCustomerIdsToSearch);
 
             /** @var GoogleAdsServerStreamDecorator $stream */
-            $stream = $googleAdsServiceClient->searchStream(
+            $stream = $googleAdsServiceClient->searchStream(SearchGoogleAdsStreamRequest::build(
                 (string) $customerIdToSearch,
                 $query,
-            );
+            ));
 
             foreach ($stream->iterateAllElements() as $googleAdsRow) {
                 /** @var GoogleAdsRow $googleAdsRow */
@@ -140,7 +142,7 @@ class GetAccountHierarchy
                         $customerIdsToChildAccounts,
                     );
                     if (!$alreadyVisited && $customerClient->getLevel() === 1) {
-                        array_push($managerCustomerIdsToSearch, $customerClient->getId());
+                        $managerCustomerIdsToSearch[] = $customerClient->getId();
                     }
                 }
             }
@@ -155,7 +157,7 @@ class GetAccountHierarchy
     private static function getAccessibleCustomers(GoogleAdsClient $googleAdsClient): array
     {
         $customerServiceClient = $googleAdsClient->getCustomerServiceClient();
-        $accessibleCustomers = $customerServiceClient->listAccessibleCustomers();
+        $accessibleCustomers = $customerServiceClient->listAccessibleCustomers(new ListAccessibleCustomersRequest());
 
         $accessibleCustomerIds = [];
         /** @var string $customerResourceName */
