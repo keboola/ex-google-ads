@@ -278,13 +278,11 @@ class Extractor
         }
 
         $this->logger->debug(sprintf('Call query: "%s"', $query));
-        $request = SearchGoogleAdsRequest::build(
-            $customerId,
-            $query,
-        );
-        $request->setPageSize(self::REPORT_PAGE_SIZE);
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            $request,
+            SearchGoogleAdsRequest::build(
+                $customerId,
+                $query,
+            ),
             [
                 'retrySettings' => self::RETRY_SETTINGS,
             ],
