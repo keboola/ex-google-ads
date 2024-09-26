@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Keboola\GoogleAds;
 
 use Generator;
-use Google\Ads\GoogleAds\Lib\V15\GoogleAdsClient;
-use Google\Ads\GoogleAds\V15\Resources\Customer;
-use Google\Ads\GoogleAds\V15\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V15\Services\GoogleAdsRow;
-use Google\Ads\GoogleAds\V15\Services\SearchGoogleAdsResponse;
+use Google\Ads\GoogleAds\Lib\V17\GoogleAdsClient;
+use Google\Ads\GoogleAds\V17\Resources\Customer;
+use Google\Ads\GoogleAds\V17\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V17\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V17\Services\SearchGoogleAdsRequest;
+use Google\Ads\GoogleAds\V17\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\ApiStatus;
 use Google\ApiCore\PagedListResponse;
@@ -134,8 +135,10 @@ class Extractor
 
         $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            $customerId,
-            implode(' ', $query),
+            SearchGoogleAdsRequest::build(
+                $customerId,
+                implode(' ', $query),
+            ),
             [
                 'retrySettings' => array_merge(
                     self::RETRY_SETTINGS,
@@ -229,8 +232,10 @@ class Extractor
 
         $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
         $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            $customerId,
-            implode(' ', $query),
+            SearchGoogleAdsRequest::build(
+                $customerId,
+                implode(' ', $query),
+            ),
             [
                 'retrySettings' => self::RETRY_SETTINGS,
             ],
@@ -273,16 +278,17 @@ class Extractor
         }
 
         $this->logger->debug(sprintf('Call query: "%s"', $query));
-        $search = $this->googleAdsClient
-            ->getGoogleAdsServiceClient()
-            ->search(
-                $customerId,
-                $query,
-                [
-                    'pageSize' => self::REPORT_PAGE_SIZE,
-                    'retrySettings' => self::RETRY_SETTINGS,
-                ],
-            );
+        $request = SearchGoogleAdsRequest::build(
+            $customerId,
+            $query,
+        );
+        $request->setPageSize(self::REPORT_PAGE_SIZE);
+        $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
+            $request,
+            [
+                'retrySettings' => self::RETRY_SETTINGS,
+            ],
+        );
 
         $page = $search->getPage();
         if ($page->getPageElementCount() === 0) {
@@ -442,8 +448,6 @@ class Extractor
             ['Exception', 'ErrorExceptions', 'ApiException'],
         );
         $backoff = new ExponentialBackOffPolicy();
-        $retryProxy = new RetryProxy($policy, $backoff, $this->logger);
-
-        return $retryProxy;
+        return new RetryProxy($policy, $backoff, $this->logger);
     }
 }

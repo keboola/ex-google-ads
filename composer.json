@@ -7,7 +7,7 @@
         "ext-json": "*",
         "google/gax": "^1.19",
         "google/protobuf": "^3.22",
-        "googleads/google-ads-php": "^21.1",
+        "googleads/google-ads-php": "^24.0",
         "guzzlehttp/guzzle": "^7.8",
         "keboola/csv": "^4.0",
         "keboola/php-component": "^9.4",
