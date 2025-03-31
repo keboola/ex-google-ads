@@ -11,4 +11,13 @@
     <testsuite name="Main Test Suite">
         <directory>tests/phpunit</directory>
     </testsuite>
+    <php>
+        <env name="CUSTOMER_ID" value="9250499593"/>
+        <env name="CUSTOMER_ID_WITH_DASH" value="9250499593"/>
+        <env name="CUSTOMER_ID_MANAGER_WITH_SUBACCOUNTS" value="6823200026"/>
+        <env name="DEVELOPER_TOKEN" value="hIlnVbxphuDURQTF1qF9cQ"/>
+        <env name="API_DATA" value='{"refresh_token":"1//04C2pDlX8nTkuCgYIARAAGAQSNwF-L9IrxAODszS1x4NjkCsewOTD0cfz1Fkz_qkAxjpFPD8ym4IudCaXUVgAIYROPBvDYp_iwpE"}'/>
+        <env name="CLIENT_SECRET" value="GdeFFE0qLByTb6YmrrwMtUom"/>
+        <env name="CLIENT_ID" value="1025566943657-4s4n2n7ls96df5re7jklko26rhvs5b79.apps.googleusercontent.com"/>
+    </php>
 </phpunit>
