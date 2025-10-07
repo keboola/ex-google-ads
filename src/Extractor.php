@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Keboola\GoogleAds;
 
 use Generator;
-use Google\Ads\GoogleAds\Lib\V19\GoogleAdsClient;
-use Google\Ads\GoogleAds\V19\Resources\Customer;
-use Google\Ads\GoogleAds\V19\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V19\Services\GoogleAdsRow;
-use Google\Ads\GoogleAds\V19\Services\SearchGoogleAdsRequest;
-use Google\Ads\GoogleAds\V19\Services\SearchGoogleAdsResponse;
+use Google\Ads\GoogleAds\Lib\V21\GoogleAdsClient;
+use Google\Ads\GoogleAds\V21\Resources\Customer;
+use Google\Ads\GoogleAds\V21\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V21\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsRequest;
+use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\ApiStatus;
 use Google\ApiCore\PagedListResponse;

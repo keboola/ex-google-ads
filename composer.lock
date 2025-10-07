@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "833c2fdf6d2224397289b182324b7217",
+    "content-hash": "f0e71e23b1713189b90aee555953bc66",
     "packages": [
         {
             "name": "brick/math",
@@ -441,30 +441,30 @@
         },
         {
             "name": "googleads/google-ads-php",
-            "version": "v26.1.0",
+            "version": "v31.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/google-ads-php.git",
-                "reference": "9a21c25de05921d67ba11726fa912886b697389e"
+                "reference": "be0249c30c27b4760387bec6682b82c9f4167761"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/9a21c25de05921d67ba11726fa912886b697389e",
-                "reference": "9a21c25de05921d67ba11726fa912886b697389e",
+                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/be0249c30c27b4760387bec6682b82c9f4167761",
+                "reference": "be0249c30c27b4760387bec6682b82c9f4167761",
                 "shasum": ""
             },
             "require": {
                 "google/gax": "^1.19.1",
-                "google/protobuf": "^3.21.5 || ^4.26",
-                "grpc/grpc": "^1.36.0",
+                "google/protobuf": "^3.21.5 || >=4.26 <=4.30.0",
+                "grpc/grpc": ">=1.36.0 <=1.57.0",
                 "monolog/monolog": "^1.26 || ^2.0 || ^3.0",
                 "php": ">=8.1"
             },
             "require-dev": {
                 "composer/composer": "^2.0",
                 "ext-bcmath": "*",
-                "ext-grpc": "*",
-                "ext-protobuf": "*",
+                "ext-grpc": ">=1.57.0 <=1.66.0",
+                "ext-protobuf": "3.21.5 || >=4.26 <=4.30.0",
                 "phpunit/phpunit": "^9.5",
                 "react/http": "^1.2.0",
                 "squizlabs/php_codesniffer": "^3.5",
@@ -498,9 +498,9 @@
             "homepage": "https://github.com/googleads/google-ads-php",
             "support": {
                 "issues": "https://github.com/googleads/google-ads-php/issues",
-                "source": "https://github.com/googleads/google-ads-php/tree/v26.1.0"
+                "source": "https://github.com/googleads/google-ads-php/tree/v31.0.1"
             },
-            "time": "2025-02-27T17:49:57+00:00"
+            "time": "2025-08-22T17:16:50+00:00"
         },
         {
             "name": "grpc/grpc",
@@ -4816,5 +4816,5 @@
         "ext-json": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
