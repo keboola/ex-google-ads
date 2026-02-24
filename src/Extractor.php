@@ -267,8 +267,34 @@ class Extractor
         );
     }
 
+    /**
+     * Rewrites GAQL field names that were removed/renamed in Google Ads API v23.
+     *
+     * In v23, campaign.start_date and campaign.end_date were removed
+     * and replaced with campaign.start_date_time and campaign.end_date_time.
+     * This method automatically rewrites user queries for backward compatibility.
+     */
+    private function rewriteDeprecatedFields(string $query): string
+    {
+        $replacements = [
+            'campaign.start_date' => 'campaign.start_date_time',
+            'campaign.end_date' => 'campaign.end_date_time',
+        ];
+
+        foreach ($replacements as $old => $new) {
+            // Use word-boundary matching to avoid replacing campaign.start_date_time back to itself
+            // Match the old field name only when NOT already followed by _time
+            $pattern = '/' . preg_quote($old, '/') . '(?!_time)/';
+            $query = preg_replace($pattern, $new, $query) ?? $query;
+        }
+
+        return $query;
+    }
+
     private function getReport(string $customerId, string $query, string $tableName): void
     {
+        $query = $this->rewriteDeprecatedFields($query);
+
         if ($this->config->getSince() && $this->config->getUntil()) {
             $query .= sprintf(
                 ' WHERE segments.date BETWEEN "%s" AND "%s"',
