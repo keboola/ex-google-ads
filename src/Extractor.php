@@ -475,3 +475,4 @@ class Extractor
         return new RetryProxy($policy, $backoff, $this->logger);
     }
 }
+
