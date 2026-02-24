@@ -210,8 +210,8 @@ class Extractor
             . 'campaign.serving_status, '
             . 'campaign.ad_serving_optimization_status, '
             . 'campaign.advertising_channel_type, '
-            . 'campaign.start_date, '
-            . 'campaign.end_date';
+            . 'campaign.start_date_time, '
+            . 'campaign.end_date_time';
 
         $query[] = 'FROM campaign';
         $where = [];
