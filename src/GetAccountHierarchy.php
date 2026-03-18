@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Keboola\GoogleAds;
 
-use Google\Ads\GoogleAds\Lib\V21\GoogleAdsClient;
-use Google\Ads\GoogleAds\Lib\V21\GoogleAdsClientBuilder;
-use Google\Ads\GoogleAds\Lib\V21\GoogleAdsException;
-use Google\Ads\GoogleAds\Lib\V21\GoogleAdsServerStreamDecorator;
-use Google\Ads\GoogleAds\V21\Errors\GoogleAdsError;
-use Google\Ads\GoogleAds\V21\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V21\Services\Client\CustomerServiceClient;
-use Google\Ads\GoogleAds\V21\Services\GoogleAdsRow;
-use Google\Ads\GoogleAds\V21\Services\ListAccessibleCustomersRequest;
-use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsStreamRequest;
+use Google\Ads\GoogleAds\Lib\V23\GoogleAdsClient;
+use Google\Ads\GoogleAds\Lib\V23\GoogleAdsClientBuilder;
+use Google\Ads\GoogleAds\Lib\V23\GoogleAdsException;
+use Google\Ads\GoogleAds\Lib\V23\GoogleAdsServerStreamDecorator;
+use Google\Ads\GoogleAds\V23\Errors\GoogleAdsError;
+use Google\Ads\GoogleAds\V23\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V23\Services\Client\CustomerServiceClient;
+use Google\Ads\GoogleAds\V23\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V23\Services\ListAccessibleCustomersRequest;
+use Google\Ads\GoogleAds\V23\Services\SearchGoogleAdsStreamRequest;
 use Google\ApiCore\ApiException;
 use GuzzleHttp\Exception\ClientException;
 use Keboola\Component\UserException;

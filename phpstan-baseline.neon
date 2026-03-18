@@ -11,7 +11,7 @@ parameters:
 			path: src/Component.php
 
 		-
-			message: "#^Parameter \\#1 \\$oAuth2Credential of method Google\\\\Ads\\\\GoogleAds\\\\Lib\\\\V13\\\\GoogleAdsClientBuilder\\:\\:withOAuth2Credential\\(\\) expects Google\\\\Auth\\\\FetchAuthTokenInterface, mixed given\\.$#"
+			message: "#^Parameter \\#1 \\$oAuth2Credential of method Google\\\\Ads\\\\GoogleAds\\\\Lib\\\\V23\\\\GoogleAdsClientBuilder\\:\\:withOAuth2Credential\\(\\) expects Google\\\\Auth\\\\FetchAuthTokenInterface, mixed given\\.$#"
 			count: 1
 			path: src/Component.php
 
