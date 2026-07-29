@@ -6,11 +6,14 @@ namespace Keboola\GoogleAds\Tests;
 
 use ArrayIterator;
 use Google\Ads\GoogleAds\Lib\V21\GoogleAdsClient;
+use Google\Ads\GoogleAds\V21\Resources\CustomerClient;
 use Google\Ads\GoogleAds\V21\Services\Client\GoogleAdsServiceClient;
+use Google\Ads\GoogleAds\V21\Services\GoogleAdsRow;
 use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\Page;
 use Google\ApiCore\PagedListResponse;
+use Google\Protobuf\FieldMask;
 use Google\Rpc\Code;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\ServerException;
@@ -24,6 +27,7 @@ use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Retry\BackOff\NoBackOffPolicy;
+use Throwable;
 
 /**
  * Covers the bounded retry around the customers search call. A transient HTTP 5xx from
@@ -35,6 +39,10 @@ use Retry\BackOff\NoBackOffPolicy;
  */
 class ExtractorRetryTest extends TestCase
 {
+    private const ROOT_CUSTOMER_ID = '1234567890';
+
+    private const CUSTOMER_ID = '9876543210';
+
     private Temp $temp;
 
     protected function setUp(): void
@@ -56,7 +64,7 @@ class ExtractorRetryTest extends TestCase
         $this->expectException(ServerException::class);
         $this->expectExceptionMessage('503 Service Unavailable');
 
-        $extractor->extract('1234567890');
+        $extractor->extract(self::ROOT_CUSTOMER_ID);
     }
 
     public function testTransientConnectErrorIsRetriedAndThenRethrown(): void
@@ -75,7 +83,7 @@ class ExtractorRetryTest extends TestCase
         $this->expectException(ConnectException::class);
         $this->expectExceptionMessage('Failed to connect');
 
-        $extractor->extract('1234567890');
+        $extractor->extract(self::ROOT_CUSTOMER_ID);
     }
 
     /**
@@ -102,7 +110,51 @@ class ExtractorRetryTest extends TestCase
         $extractor = $this->createExtractor($serviceClient);
 
         // No customer rows come back, so nothing is downloaded and no exception escapes.
-        self::assertSame([], $extractor->extract('1234567890'));
+        self::assertSame([], $extractor->extract(self::ROOT_CUSTOMER_ID));
+    }
+
+    /**
+     * The campaigns call site retries ServerException, which nothing else catches.
+     */
+    public function testServerErrorAtCampaignsIsRetriedAndThenRethrown(): void
+    {
+        $serviceClient = $this->createMock(GoogleAdsServiceClient::class);
+        $serviceClient
+            ->expects(self::exactly(1 + Config::RETRY_ATTEMPTS))
+            ->method('search')
+            ->willReturnCallback($this->customersThenFailing($this->createServerException()));
+
+        $extractor = $this->createExtractor($serviceClient);
+
+        $this->expectException(ServerException::class);
+        $this->expectExceptionMessage('503 Service Unavailable');
+
+        $extractor->extract(self::ROOT_CUSTOMER_ID);
+    }
+
+    /**
+     * Guards the deliberate asymmetry between the two whitelists. extract() already catches a
+     * ConnectException around the campaigns block, logs it and moves on to the next customer.
+     * Retrying it there would change which accounts get extracted, so the campaigns site must
+     * NOT retry it: exactly one campaigns attempt, and the customer is still marked downloaded.
+     *
+     * If the campaigns whitelist is ever widened to TRANSIENT_RETRY_EXCEPTIONS, the call count
+     * below becomes 1 + Config::RETRY_ATTEMPTS and this test fails - which is the point.
+     */
+    public function testConnectErrorAtCampaignsIsAttemptedOnceAndTheAccountIsSkipped(): void
+    {
+        $serviceClient = $this->createMock(GoogleAdsServiceClient::class);
+        $serviceClient
+            ->expects(self::exactly(2))
+            ->method('search')
+            ->willReturnCallback($this->customersThenFailing(new ConnectException(
+                'cURL error 7: Failed to connect to googleads.googleapis.com',
+                new Request('POST', 'https://googleads.googleapis.com/'),
+            )));
+
+        $extractor = $this->createExtractor($serviceClient);
+
+        self::assertSame([self::CUSTOMER_ID], $extractor->extract(self::ROOT_CUSTOMER_ID));
     }
 
     public function testDeterministicApiErrorIsNotRetried(): void
@@ -122,7 +174,7 @@ class ExtractorRetryTest extends TestCase
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('The caller does not have permission');
 
-        $extractor->extract('1234567890');
+        $extractor->extract(self::ROOT_CUSTOMER_ID);
     }
 
     private function createServerException(): ServerException
@@ -142,17 +194,67 @@ class ExtractorRetryTest extends TestCase
      */
     private function createEmptySearchResponse(): PagedListResponse
     {
+        return $this->createPagedListResponse(new SearchGoogleAdsResponse(), []);
+    }
+
+    /**
+     * @param array<int, GoogleAdsRow> $rows
+     */
+    private function createPagedListResponse(SearchGoogleAdsResponse $response, array $rows): PagedListResponse
+    {
         $page = $this->createMock(Page::class);
-        $page->method('getResponseObject')->willReturn(new SearchGoogleAdsResponse());
-        $page->method('getIterator')->willReturn(new ArrayIterator([]));
+        $page->method('getResponseObject')->willReturn($response);
+        $page->method('getIterator')->willReturn(new ArrayIterator($rows));
         $page->method('hasNextPage')->willReturn(false);
-        $page->method('getPageElementCount')->willReturn(0);
+        $page->method('getPageElementCount')->willReturn(count($rows));
 
         $search = $this->createMock(PagedListResponse::class);
         $search->method('getPage')->willReturn($page);
-        $search->method('iterateAllElements')->willReturn(new ArrayIterator([]));
+        $search->method('iterateAllElements')->willReturn(new ArrayIterator($rows));
 
         return $search;
+    }
+
+    /**
+     * First search() call returns one non-manager customer, so extract() enters its loop body
+     * and reaches getAndSaveCampaigns(); every later call throws $failure.
+     *
+     * @return callable(): PagedListResponse
+     */
+    private function customersThenFailing(Throwable $failure): callable
+    {
+        $customers = $this->createCustomersSearchResponse();
+        $attempt = 0;
+
+        return function () use (&$attempt, $customers, $failure): PagedListResponse {
+            $attempt++;
+            if ($attempt === 1) {
+                return $customers;
+            }
+            throw $failure;
+        };
+    }
+
+    /**
+     * A customers page carrying a single enabled (non-manager) customer.
+     */
+    private function createCustomersSearchResponse(): PagedListResponse
+    {
+        $fieldMask = new FieldMask();
+        $fieldMask->setPaths(['customer_client.id', 'customer_client.descriptive_name']);
+
+        $response = new SearchGoogleAdsResponse();
+        $response->setFieldMask($fieldMask);
+
+        $customerClient = new CustomerClient();
+        $customerClient->setId((int) self::CUSTOMER_ID);
+        $customerClient->setManager(false);
+        $customerClient->setDescriptiveName('Test account');
+
+        $row = new GoogleAdsRow();
+        $row->setCustomerClient($customerClient);
+
+        return $this->createPagedListResponse($response, [$row]);
     }
 
     private function createExtractor(GoogleAdsServiceClient $serviceClient): Extractor
@@ -165,7 +267,7 @@ class ExtractorRetryTest extends TestCase
         $config = new Config(
             [
                 'parameters' => [
-                    'customerId' => ['1234567890'],
+                    'customerId' => [self::ROOT_CUSTOMER_ID],
                     'name' => 'testName',
                     'query' => 'SELECT campaign.id FROM campaign',
                     'primary' => [],
