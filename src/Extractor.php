@@ -17,6 +17,7 @@ use Google\ApiCore\PagedListResponse;
 use Google\Protobuf\Internal\Message;
 use Google\Rpc\Code;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\ServerException;
 use Keboola\Component\Manifest\ManifestManager;
 use Keboola\Component\Manifest\ManifestManager\Options\OutTableManifestOptions;
 use Keboola\Component\UserException;
@@ -46,6 +47,17 @@ class Extractor
         'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
         'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
         'maxRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 5,
+    ];
+
+    /**
+     * Transport-level failures that are transient by definition: an HTTP 5xx response
+     * (ServerException) or a failure to connect at all (ConnectException). The gRPC-level
+     * `retrySettings` above do not cover these, because the OAuth2 token refresh that the
+     * Google Ads client performs before the first call is a plain Guzzle HTTP request.
+     */
+    private const TRANSIENT_RETRY_EXCEPTIONS = [
+        ServerException::class,
+        ConnectException::class,
     ];
 
     private GoogleAdsClient $googleAdsClient;
@@ -134,19 +146,22 @@ class Extractor
         $query[] = ' ORDER BY customer_client.id';
 
         $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
-        $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            SearchGoogleAdsRequest::build(
-                $customerId,
-                implode(' ', $query),
-            ),
-            [
-                'retrySettings' => array_merge(
-                    self::RETRY_SETTINGS,
-                    [
-                        'retryableCodes' => [ApiStatus::INTERNAL, Code::INTERNAL],
-                    ],
+        /** @var PagedListResponse $search */
+        $search = $this->getTransientRetryProxy()->call(
+            fn (): PagedListResponse => $this->googleAdsClient->getGoogleAdsServiceClient()->search(
+                SearchGoogleAdsRequest::build(
+                    $customerId,
+                    implode(' ', $query),
                 ),
-            ],
+                [
+                    'retrySettings' => array_merge(
+                        self::RETRY_SETTINGS,
+                        [
+                            'retryableCodes' => [ApiStatus::INTERNAL, Code::INTERNAL],
+                        ],
+                    ),
+                ],
+            ),
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
@@ -444,6 +459,23 @@ class Extractor
         $policy = new SimpleRetryPolicy(
             Config::RETRY_ATTEMPTS,
             ['Exception', 'ErrorExceptions', 'ApiException'],
+        );
+        $backoff = new ExponentialBackOffPolicy();
+        return new RetryProxy($policy, $backoff, $this->logger);
+    }
+
+    /**
+     * Retries only the transient transport-level failures listed in
+     * self::TRANSIENT_RETRY_EXCEPTIONS. Anything else (e.g. ApiException carrying
+     * PERMISSION_DENIED, or a 4xx ClientException) is rethrown on the first attempt, so
+     * deterministic failures keep failing exactly as before. Once the attempts are
+     * exhausted the last exception is rethrown as well, so a real outage still fails the job.
+     */
+    private function getTransientRetryProxy(): RetryProxy
+    {
+        $policy = new SimpleRetryPolicy(
+            Config::RETRY_ATTEMPTS,
+            self::TRANSIENT_RETRY_EXCEPTIONS,
         );
         $backoff = new ExponentialBackOffPolicy();
         return new RetryProxy($policy, $backoff, $this->logger);
