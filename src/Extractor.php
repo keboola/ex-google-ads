@@ -25,9 +25,11 @@ use Keboola\Csv\CsvWriter;
 use Keboola\Csv\Exception;
 use Keboola\GoogleAds\Configuration\Config;
 use Psr\Log\LoggerInterface;
+use Retry\BackOff\BackOffPolicyInterface;
 use Retry\BackOff\ExponentialBackOffPolicy;
 use Retry\Policy\SimpleRetryPolicy;
 use Retry\RetryProxy;
+use Throwable;
 
 class Extractor
 {
@@ -52,13 +54,32 @@ class Extractor
     /**
      * Transport-level failures that are transient by definition: an HTTP 5xx response
      * (ServerException) or a failure to connect at all (ConnectException). The gRPC-level
-     * `retrySettings` above do not cover these, because the OAuth2 token refresh that the
-     * Google Ads client performs before the first call is a plain Guzzle HTTP request.
+     * `retrySettings` above do not cover these, because the access token is fetched by a
+     * plain Guzzle HTTP request made from inside the call, whenever the cached one expired.
      */
     private const TRANSIENT_RETRY_EXCEPTIONS = [
         ServerException::class,
         ConnectException::class,
     ];
+
+    /**
+     * The campaigns call runs inside extract()'s `catch (ApiException|ConnectException)`,
+     * which already logs a ConnectException and moves on to the next customer. Retrying it
+     * there could turn a previously-skipped account into an extracted one, i.e. change which
+     * rows are emitted, so that call site retries only ServerException - the reported root
+     * cause, which nothing catches today - and ConnectException keeps its existing behaviour.
+     */
+    private const SERVER_ERROR_RETRY_EXCEPTIONS = [
+        ServerException::class,
+    ];
+
+    /**
+     * Initial backoff interval in milliseconds. With the policy's default x2 multiplier and
+     * Config::RETRY_ATTEMPTS attempts this spreads the retries over roughly 15 seconds
+     * (1s + 2s + 4s + 8s), which is a realistic window for a transient upstream 5xx. Only
+     * ever reached after a retryable exception, so it costs a successful call nothing.
+     */
+    private const TRANSIENT_BACKOFF_INITIAL_INTERVAL_MS = 1000;
 
     private GoogleAdsClient $googleAdsClient;
 
@@ -73,8 +94,12 @@ class Extractor
     /** @var string[] */
     private array $customersIdDownloaded;
 
+    private BackOffPolicyInterface $transientBackOffPolicy;
+
     /**
      * @param string[] $customersIdDownloaded
+     * @param BackOffPolicyInterface|null $transientBackOffPolicy Defaults to the exponential
+     *     policy used in production; tests inject a no-op policy to avoid real sleeping.
      */
     public function __construct(
         GoogleAdsClient $googleAdsClient,
@@ -83,6 +108,7 @@ class Extractor
         ManifestManager $manifestManager,
         string $dataDir,
         array $customersIdDownloaded,
+        ?BackOffPolicyInterface $transientBackOffPolicy = null,
     ) {
         $this->googleAdsClient = $googleAdsClient;
         $this->config = $config;
@@ -90,6 +116,8 @@ class Extractor
         $this->manifestManager = $manifestManager;
         $this->dataDir = $dataDir;
         $this->customersIdDownloaded = $customersIdDownloaded;
+        $this->transientBackOffPolicy = $transientBackOffPolicy
+            ?? new ExponentialBackOffPolicy(self::TRANSIENT_BACKOFF_INITIAL_INTERVAL_MS);
     }
 
     /**
@@ -146,9 +174,10 @@ class Extractor
         $query[] = ' ORDER BY customer_client.id';
 
         $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
+        $serviceClient = $this->googleAdsClient->getGoogleAdsServiceClient();
         /** @var PagedListResponse $search */
-        $search = $this->getTransientRetryProxy()->call(
-            fn (): PagedListResponse => $this->googleAdsClient->getGoogleAdsServiceClient()->search(
+        $search = $this->getTransientRetryProxy(self::TRANSIENT_RETRY_EXCEPTIONS)->call(
+            fn (): PagedListResponse => $serviceClient->search(
                 SearchGoogleAdsRequest::build(
                     $customerId,
                     implode(' ', $query),
@@ -246,14 +275,18 @@ class Extractor
         $query[] = 'ORDER BY campaign.id';
 
         $this->logger->debug(sprintf('Call query: "%s"', implode(' ', $query)));
-        $search = $this->googleAdsClient->getGoogleAdsServiceClient()->search(
-            SearchGoogleAdsRequest::build(
-                $customerId,
-                implode(' ', $query),
+        $serviceClient = $this->googleAdsClient->getGoogleAdsServiceClient();
+        /** @var PagedListResponse $search */
+        $search = $this->getTransientRetryProxy(self::SERVER_ERROR_RETRY_EXCEPTIONS)->call(
+            fn (): PagedListResponse => $serviceClient->search(
+                SearchGoogleAdsRequest::build(
+                    $customerId,
+                    implode(' ', $query),
+                ),
+                [
+                    'retrySettings' => self::RETRY_SETTINGS,
+                ],
             ),
-            [
-                'retrySettings' => self::RETRY_SETTINGS,
-            ],
         );
 
         $listColumns = $this->getColumnsFromSearch($search, true);
@@ -465,19 +498,20 @@ class Extractor
     }
 
     /**
-     * Retries only the transient transport-level failures listed in
-     * self::TRANSIENT_RETRY_EXCEPTIONS. Anything else (e.g. ApiException carrying
-     * PERMISSION_DENIED, or a 4xx ClientException) is rethrown on the first attempt, so
-     * deterministic failures keep failing exactly as before. Once the attempts are
-     * exhausted the last exception is rethrown as well, so a real outage still fails the job.
+     * Retries only the transient transport-level failures passed in. Anything else (e.g. an
+     * ApiException carrying PERMISSION_DENIED, or a 4xx ClientException) is rethrown on the
+     * first attempt, so deterministic failures keep failing exactly as before. Once the
+     * attempts are exhausted the last exception is rethrown as well, so a real outage still
+     * fails the job.
+     *
+     * @param array<int, class-string<Throwable>> $retryableExceptions
      */
-    private function getTransientRetryProxy(): RetryProxy
+    private function getTransientRetryProxy(array $retryableExceptions): RetryProxy
     {
         $policy = new SimpleRetryPolicy(
             Config::RETRY_ATTEMPTS,
-            self::TRANSIENT_RETRY_EXCEPTIONS,
+            $retryableExceptions,
         );
-        $backoff = new ExponentialBackOffPolicy();
-        return new RetryProxy($policy, $backoff, $this->logger);
+        return new RetryProxy($policy, $this->transientBackOffPolicy, $this->logger);
     }
 }
