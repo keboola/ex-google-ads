@@ -56,7 +56,16 @@
         "ci": [
             "@composer validate --no-check-publish --no-check-all",
             "@build"
+        ],
+        "ci-required": [
+            "@composer validate --no-check-publish --no-check-all",
+            "@phplint",
+            "@phpcs",
+            "@tests-phpunit"
         ]
+    },
+    "scripts-descriptions": {
+        "ci-required": "Everything in \"ci\" except tests-datadir, which needs a reachable Google Ads test account. Used as the blocking CI step; tests-datadir runs as a separate non-blocking step."
     },
     "config": {
         "sort-packages": true,
