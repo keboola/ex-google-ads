@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f0e71e23b1713189b90aee555953bc66",
+    "content-hash": "90b93cb03d813f7c0bde13920c04f010",
     "packages": [
         {
             "name": "brick/math",
@@ -251,16 +251,16 @@
         },
         {
             "name": "google/gax",
-            "version": "v1.36.0",
+            "version": "v1.36.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/gax-php.git",
-                "reference": "140599cf5eae2432363ce6198e9fdff851625a7a"
+                "reference": "afdac3bc38a3b17d70668115d7b1a97289ac4d72"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/gax-php/zipball/140599cf5eae2432363ce6198e9fdff851625a7a",
-                "reference": "140599cf5eae2432363ce6198e9fdff851625a7a",
+                "url": "https://api.github.com/repos/googleapis/gax-php/zipball/afdac3bc38a3b17d70668115d7b1a97289ac4d72",
+                "reference": "afdac3bc38a3b17d70668115d7b1a97289ac4d72",
                 "shasum": ""
             },
             "require": {
@@ -302,9 +302,9 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/gax-php/issues",
-                "source": "https://github.com/googleapis/gax-php/tree/v1.36.0"
+                "source": "https://github.com/googleapis/gax-php/tree/v1.36.1"
             },
-            "time": "2024-12-11T02:47:43+00:00"
+            "time": "2025-05-20T19:50:43+00:00"
         },
         {
             "name": "google/grpc-gcp",
@@ -441,30 +441,31 @@
         },
         {
             "name": "googleads/google-ads-php",
-            "version": "v31.0.1",
+            "version": "v33.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/google-ads-php.git",
-                "reference": "be0249c30c27b4760387bec6682b82c9f4167761"
+                "reference": "1960045c756910a3bfb0a74aa1b0e95fb7d62fa2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/be0249c30c27b4760387bec6682b82c9f4167761",
-                "reference": "be0249c30c27b4760387bec6682b82c9f4167761",
+                "url": "https://api.github.com/repos/googleads/google-ads-php/zipball/1960045c756910a3bfb0a74aa1b0e95fb7d62fa2",
+                "reference": "1960045c756910a3bfb0a74aa1b0e95fb7d62fa2",
                 "shasum": ""
             },
             "require": {
-                "google/gax": "^1.19.1",
-                "google/protobuf": "^3.21.5 || >=4.26 <=4.30.0",
-                "grpc/grpc": ">=1.36.0 <=1.57.0",
+                "google/auth": "^1.30 || ^2.0",
+                "google/gax": "^1.36.1",
+                "google/protobuf": "^3.21.5 || ^4.26.1 || ^5.34",
+                "grpc/grpc": ">=1.57.0",
                 "monolog/monolog": "^1.26 || ^2.0 || ^3.0",
                 "php": ">=8.1"
             },
             "require-dev": {
                 "composer/composer": "^2.0",
                 "ext-bcmath": "*",
-                "ext-grpc": ">=1.57.0 <=1.66.0",
-                "ext-protobuf": "3.21.5 || >=4.26 <=4.30.0",
+                "ext-grpc": "*",
+                "ext-protobuf": "^3.21.5 || ^4.26",
                 "phpunit/phpunit": "^9.5",
                 "react/http": "^1.2.0",
                 "squizlabs/php_codesniffer": "^3.5",
@@ -498,9 +499,9 @@
             "homepage": "https://github.com/googleads/google-ads-php",
             "support": {
                 "issues": "https://github.com/googleads/google-ads-php/issues",
-                "source": "https://github.com/googleads/google-ads-php/tree/v31.0.1"
+                "source": "https://github.com/googleads/google-ads-php/tree/v33.6.0"
             },
-            "time": "2025-08-22T17:16:50+00:00"
+            "time": "2026-07-22T18:40:43+00:00"
         },
         {
             "name": "grpc/grpc",
@@ -4808,13 +4809,13 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
         "ext-json": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
