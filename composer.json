@@ -7,7 +7,7 @@
         "ext-json": "*",
         "google/gax": "^1.24",
         "google/protobuf": "^3.25",
-        "googleads/google-ads-php": "^31.0",
+        "googleads/google-ads-php": "^33.6",
         "guzzlehttp/guzzle": "^7.8",
         "keboola/csv": "^4.0",
         "keboola/php-component": "^9.4",
@@ -56,7 +56,16 @@
         "ci": [
             "@composer validate --no-check-publish --no-check-all",
             "@build"
+        ],
+        "ci-required": [
+            "@composer validate --no-check-publish --no-check-all",
+            "@phplint",
+            "@phpcs",
+            "@tests-phpunit"
         ]
+    },
+    "scripts-descriptions": {
+        "ci-required": "Everything in \"ci\" except tests-datadir, which needs a reachable Google Ads test account. Used as the blocking CI step; tests-datadir runs as a separate non-blocking step."
     },
     "config": {
         "sort-packages": true,

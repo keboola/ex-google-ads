@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Keboola\GoogleAds;
 
 use Generator;
-use Google\Ads\GoogleAds\Lib\V21\GoogleAdsClient;
-use Google\Ads\GoogleAds\V21\Resources\Customer;
-use Google\Ads\GoogleAds\V21\Resources\CustomerClient;
-use Google\Ads\GoogleAds\V21\Services\GoogleAdsRow;
-use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsRequest;
-use Google\Ads\GoogleAds\V21\Services\SearchGoogleAdsResponse;
+use Google\Ads\GoogleAds\Lib\V25\GoogleAdsClient;
+use Google\Ads\GoogleAds\V25\Resources\Customer;
+use Google\Ads\GoogleAds\V25\Resources\CustomerClient;
+use Google\Ads\GoogleAds\V25\Services\GoogleAdsRow;
+use Google\Ads\GoogleAds\V25\Services\SearchGoogleAdsRequest;
+use Google\Ads\GoogleAds\V25\Services\SearchGoogleAdsResponse;
 use Google\ApiCore\ApiException;
 use Google\ApiCore\ApiStatus;
 use Google\ApiCore\PagedListResponse;
@@ -42,6 +42,19 @@ class Extractor
         self::CUSTOMER_TABLE => ['id'],
         self::CAMPAIGN_TABLE => ['customerId', 'id'],
     ];
+
+    /**
+     * Google Ads API v23 removed campaign.start_date / campaign.end_date in favour of
+     * campaign.start_date_time / campaign.end_date_time. Output columns are derived from the
+     * response field mask, so querying the new fields would rename the columns of the
+     * incrementally loaded "campaign" table and break every existing configuration. Map them back
+     * to the original column names, and keep the values date-only as the removed fields were.
+     */
+    private const CAMPAIGN_LEGACY_DATE_COLUMNS = [
+        'startDateTime' => 'startDate',
+        'endDateTime' => 'endDate',
+    ];
+
     private const RETRY_SETTINGS = [
         'totalTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS,
         'initialRpcTimeoutMillis' => self::CLIENT_TIMEOUT_MILLIS / 10,
@@ -210,8 +223,8 @@ class Extractor
             . 'campaign.serving_status, '
             . 'campaign.ad_serving_optimization_status, '
             . 'campaign.advertising_channel_type, '
-            . 'campaign.start_date, '
-            . 'campaign.end_date';
+            . 'campaign.start_date_time, '
+            . 'campaign.end_date_time';
 
         $query[] = 'FROM campaign';
         $where = [];
@@ -241,13 +254,13 @@ class Extractor
             ],
         );
 
-        $listColumns = $this->getColumnsFromSearch($search, true);
+        $listColumns = $this->useLegacyCampaignDateColumns($this->getColumnsFromSearch($search, true));
 
         foreach ($search->iterateAllElements() as $result) {
             /** @var GoogleAdsRow $result */
             /** @var Message $campaign */
             $campaign = $result->getCampaign();
-            $parsedCampaign = $this->parseResponse($campaign, $listColumns);
+            $parsedCampaign = $this->truncateCampaignDates($this->parseResponse($campaign, $listColumns));
             $csvCampaign->writeRow(array_merge(
                 ['customerId' => $customerId],
                 $parsedCampaign,
@@ -370,6 +383,44 @@ class Extractor
             $output[$columnName] = $columnData;
         }
         return $output;
+    }
+
+    /**
+     * Emit the v22-and-older column names for the renamed campaign date fields, so that the output
+     * table keeps its existing columns. See self::CAMPAIGN_LEGACY_DATE_COLUMNS.
+     *
+     * @param array<string, string> $listColumns
+     * @return array<string, string>
+     */
+    private function useLegacyCampaignDateColumns(array $listColumns): array
+    {
+        foreach (self::CAMPAIGN_LEGACY_DATE_COLUMNS as $apiColumn => $legacyColumn) {
+            if (array_key_exists($apiColumn, $listColumns)) {
+                $listColumns[$apiColumn] = $legacyColumn;
+            }
+        }
+        return $listColumns;
+    }
+
+    /**
+     * The removed campaign.start_date / campaign.end_date fields were dates, their replacements are
+     * "yyyy-MM-dd HH:mm:ss" timestamps. Drop the time part to keep the output values unchanged.
+     *
+     * @param array<string, mixed> $campaign
+     * @return array<string, mixed>
+     */
+    private function truncateCampaignDates(array $campaign): array
+    {
+        foreach (self::CAMPAIGN_LEGACY_DATE_COLUMNS as $legacyColumn) {
+            $value = $campaign[$legacyColumn] ?? null;
+            if (!is_string($value)) {
+                continue;
+            }
+            if (preg_match('~^(\d{4}-\d{2}-\d{2})[ T]\d{2}:\d{2}:\d{2}~', $value, $matches) === 1) {
+                $campaign[$legacyColumn] = $matches[1];
+            }
+        }
+        return $campaign;
     }
 
     /**
