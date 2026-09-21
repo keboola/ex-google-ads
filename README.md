@@ -25,6 +25,18 @@ This extractor allows you to import data from Google Ads. If you do not have a G
 }
 ```
 
+## Error handling
+
+The extractor is built for manager accounts that hold many client accounts, where single accounts
+are regularly unreadable: closed, suspended, or not a Google Ads account at all.
+
+- **Some accounts fail.** The extractor logs an error for each failed account and continues with
+  the remaining accounts. The job finishes successfully, so one dead account does not cost you the
+  data of all the others. Read the job log to see which accounts were skipped.
+- **Every account fails.** No report data was downloaded, so the job fails with exit code 1. This
+  is what happens when the configured `query` is not valid, for example when it asks for a field
+  that the Google Ads API no longer accepts.
+
 ## Development
  
 Clone this repository and init the workspace with following command:
