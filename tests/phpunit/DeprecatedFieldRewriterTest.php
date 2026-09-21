@@ -134,4 +134,51 @@ class DeprecatedFieldRewriterTest extends TestCase
             'metrics.video_view_rate_shorts' => 'metrics.video_trueview_view_rate_shorts',
         ], $result['applied']);
     }
+
+    public function testApplyColumnOverridesRenamesPresentKeysOnly(): void
+    {
+        $listColumns = [
+            'metrics.videoTrueviewViews' => 'metricsVideoTrueviewViews',
+            'campaign.startDateTime' => 'campaignStartDateTime',
+            'campaign.id' => 'campaignId',
+        ];
+        $applied = [
+            'metrics.video_views' => 'metrics.video_trueview_views',
+            'campaign.start_date' => 'campaign.start_date_time',
+            'campaign.end_date' => 'campaign.end_date_time',
+        ];
+        self::assertSame([
+            'metrics.videoTrueviewViews' => 'metricsVideoViews',
+            'campaign.startDateTime' => 'campaignStartDate',
+            'campaign.id' => 'campaignId',
+        ], DeprecatedFieldRewriter::applyColumnOverrides($listColumns, $applied));
+    }
+
+    public function testTruncateDateColumnsOnlyTouchesDateColumns(): void
+    {
+        $applied = [
+            'campaign.start_date' => 'campaign.start_date_time',
+            'metrics.video_views' => 'metrics.video_trueview_views',
+        ];
+        $row = [
+            'campaignStartDate' => '2024-05-06 12:34:56',
+            'metricsVideoViews' => '123',
+            'campaignId' => '42',
+        ];
+        self::assertSame([
+            'campaignStartDate' => '2024-05-06',
+            'metricsVideoViews' => '123',
+            'campaignId' => '42',
+        ], DeprecatedFieldRewriter::truncateDateColumns($row, $applied));
+    }
+
+    public function testTruncateDateColumnsLeavesNullAndMissingUntouched(): void
+    {
+        $applied = ['campaign.start_date' => 'campaign.start_date_time'];
+        $row = ['campaignStartDate' => null, 'campaignId' => '42'];
+        self::assertSame(
+            ['campaignStartDate' => null, 'campaignId' => '42'],
+            DeprecatedFieldRewriter::truncateDateColumns($row, $applied),
+        );
+    }
 }

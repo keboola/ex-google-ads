@@ -14,6 +14,10 @@ namespace Keboola\GoogleAds;
  * substring replacement, so overlapping names such as "metrics.video_view_rate" and
  * "metrics.video_view_rate_in_stream" never collide and a query that already uses the current name
  * is left untouched.
+ *
+ * Matching is whole-query, not scoped to field positions, so a deprecated token appearing inside a
+ * GAQL string literal (e.g. a quoted filter value) would also be rewritten, though no legitimate
+ * query does this.
  */
 class DeprecatedFieldRewriter
 {
@@ -105,6 +109,44 @@ class DeprecatedFieldRewriter
             }
         }
         return $names;
+    }
+
+    /**
+     * Apply the legacy-column-name overrides to a report field-mask column map (column key =>
+     * column name), so the output table keeps its original column names. Only keys actually
+     * present are changed; column order is preserved (in-place update, no re-keying).
+     *
+     * @param array<string, string> $listColumns column key => column name
+     * @param array<string, string> $applied     old path => new path, from rewrite()
+     * @return array<string, string>
+     */
+    public static function applyColumnOverrides(array $listColumns, array $applied): array
+    {
+        foreach (self::reportColumnOverrides($applied) as $newKey => $legacyName) {
+            if (array_key_exists($newKey, $listColumns)) {
+                $listColumns[$newKey] = $legacyName;
+            }
+        }
+        return $listColumns;
+    }
+
+    /**
+     * Truncate the renamed date columns of one output row from datetime back to date. Columns that
+     * are absent, null, or non-string are left untouched (isset excludes null; is_string guards the
+     * rest — a value here is always a date string from the API, but we stay defensive).
+     *
+     * @param array<string, mixed> $row     output row: column name => value
+     * @param array<string, string> $applied old path => new path, from rewrite()
+     * @return array<string, mixed>
+     */
+    public static function truncateDateColumns(array $row, array $applied): array
+    {
+        foreach (self::dateColumnNames($applied) as $column) {
+            if (isset($row[$column]) && is_string($row[$column])) {
+                $row[$column] = self::truncateToDate($row[$column]);
+            }
+        }
+        return $row;
     }
 
     /** e.g. "metrics.video_views" => "metrics.videoViews" (the response field-mask key). */

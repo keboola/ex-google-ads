@@ -357,13 +357,7 @@ class Extractor
         ));
 
         $listColumns = $this->getColumnsFromSearch($search);
-
-        foreach (DeprecatedFieldRewriter::reportColumnOverrides($appliedRenames) as $newKey => $legacyName) {
-            if (isset($listColumns[$newKey])) {
-                $listColumns[$newKey] = $legacyName;
-            }
-        }
-        $dateColumns = DeprecatedFieldRewriter::dateColumnNames($appliedRenames);
+        $listColumns = DeprecatedFieldRewriter::applyColumnOverrides($listColumns, $appliedRenames);
 
         $hasNextPage = true;
         $isPrimaryKeysValidated = false;
@@ -374,11 +368,7 @@ class Extractor
             /** @var GoogleAdsRow $result */
             foreach ($response->getResults() as $result) {
                 $data = $this->parseResponse($result, $listColumns);
-                foreach ($dateColumns as $dateColumn) {
-                    if (isset($data[$dateColumn])) {
-                        $data[$dateColumn] = DeprecatedFieldRewriter::truncateToDate($data[$dateColumn]);
-                    }
-                }
+                $data = DeprecatedFieldRewriter::truncateDateColumns($data, $appliedRenames);
                 if (!$isPrimaryKeysValidated) {
                     $this->validatePrimaryKeys($listColumns, $this->config->getPrimaryKeys());
                     $isPrimaryKeysValidated = true;
