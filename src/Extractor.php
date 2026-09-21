@@ -74,6 +74,8 @@ class Extractor
     /** @var string[] */
     private array $customersIdDownloaded;
 
+    private ExtractionStats $stats;
+
     /**
      * @param string[] $customersIdDownloaded
      */
@@ -84,6 +86,7 @@ class Extractor
         ManifestManager $manifestManager,
         string $dataDir,
         array $customersIdDownloaded,
+        ExtractionStats $stats,
     ) {
         $this->googleAdsClient = $googleAdsClient;
         $this->config = $config;
@@ -91,6 +94,7 @@ class Extractor
         $this->manifestManager = $manifestManager;
         $this->dataDir = $dataDir;
         $this->customersIdDownloaded = $customersIdDownloaded;
+        $this->stats = $stats;
     }
 
     /**
@@ -117,6 +121,8 @@ class Extractor
                         $tableName,
                     );
                 });
+
+                $this->stats->customerSucceeded();
             } catch (ApiException|ConnectException $e) {
                 $this->logger->error(sprintf(
                     'Fetching the report for client "%s" with ID "%s" failed: "%s".',
@@ -124,6 +130,15 @@ class Extractor
                     $customerId,
                     $e->getMessage(),
                 ));
+
+                // One unreadable account must not stop the extraction of the others, so the loop
+                // continues. ExtractionStats records the failure so that Component can fail the
+                // job if it turns out that every processed account failed.
+                $this->stats->customerFailed(
+                    (string) $customer->getDescriptiveName(),
+                    $customerId,
+                    $e->getMessage(),
+                );
             }
             $this->customersIdDownloaded[] = $customerId;
         }

@@ -23,6 +23,7 @@ class Component extends BaseComponent
     protected function run(): void
     {
         $customersIdDownloaded = [];
+        $stats = new ExtractionStats();
         foreach ($this->getConfig()->getCustomersId() as $customerId) {
             $googleAdsClient = $this->getGoogleAdsClient($customerId);
             $extractor = new Extractor(
@@ -32,6 +33,7 @@ class Component extends BaseComponent
                 $this->getManifestManager(),
                 $this->getDataDir(),
                 $customersIdDownloaded,
+                $stats,
             );
 
             try {
@@ -48,6 +50,13 @@ class Component extends BaseComponent
                     $message['message'] ?? $e->getMessage(),
                 ));
             }
+        }
+
+        // A single unreadable account is tolerated on purpose - see ExtractionStats. A run in
+        // which every processed account failed downloaded no report data at all, so it must not
+        // be reported as a successful job.
+        if ($stats->everyProcessedCustomerFailed()) {
+            throw new UserException($stats->getEveryCustomerFailedMessage());
         }
     }
 
