@@ -79,6 +79,11 @@ class Config extends BaseConfig
         return $this->getValue(['parameters', 'onlyEnabledCustomers'], true);
     }
 
+    public function getContinueOnFailure(): bool
+    {
+        return (bool) $this->getValue(['parameters', 'continueOnFailure'], true);
+    }
+
     protected function getDate(string $date, string $name): string
     {
         $time = strtotime($date);

@@ -131,6 +131,15 @@ class Extractor
                     $e->getMessage(),
                 ));
 
+                if (!$this->config->getContinueOnFailure()) {
+                    throw new UserException(sprintf(
+                        'Extraction failed for account "%s" (ID "%s"): %s',
+                        (string) $customer->getDescriptiveName(),
+                        $customerId,
+                        $e->getMessage(),
+                    ), $e->getCode(), $e);
+                }
+
                 // One unreadable account must not stop the extraction of the others, so the loop
                 // continues. ExtractionStats records the failure so that Component can fail the
                 // job if it turns out that every processed account failed.
