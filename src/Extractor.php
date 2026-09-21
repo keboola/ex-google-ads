@@ -310,8 +310,10 @@ class Extractor
     private function getReport(string $customerId, string $query, string $tableName): void
     {
         $appliedRenames = [];
+        $columnRenames = [];
         if ($this->config->rewriteDeprecatedFieldsEnabled()) {
             $rewrite = DeprecatedFieldRewriter::rewrite($query);
+            $columnRenames = DeprecatedFieldRewriter::selectClauseRenames($query, $rewrite['applied']);
             $query = $rewrite['query'];
             $appliedRenames = $rewrite['applied'];
             foreach ($appliedRenames as $oldPath => $newPath) {
@@ -357,7 +359,7 @@ class Extractor
         ));
 
         $listColumns = $this->getColumnsFromSearch($search);
-        $listColumns = DeprecatedFieldRewriter::applyColumnOverrides($listColumns, $appliedRenames);
+        $listColumns = DeprecatedFieldRewriter::applyColumnOverrides($listColumns, $columnRenames);
 
         $hasNextPage = true;
         $isPrimaryKeysValidated = false;
@@ -368,7 +370,7 @@ class Extractor
             /** @var GoogleAdsRow $result */
             foreach ($response->getResults() as $result) {
                 $data = $this->parseResponse($result, $listColumns);
-                $data = DeprecatedFieldRewriter::truncateDateColumns($data, $appliedRenames);
+                $data = DeprecatedFieldRewriter::truncateDateColumns($data, $columnRenames);
                 if (!$isPrimaryKeysValidated) {
                     $this->validatePrimaryKeys($listColumns, $this->config->getPrimaryKeys());
                     $isPrimaryKeysValidated = true;

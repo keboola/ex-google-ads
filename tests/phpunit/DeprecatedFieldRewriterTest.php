@@ -201,4 +201,31 @@ class DeprecatedFieldRewriterTest extends TestCase
         );
         self::assertSame(['campaign.start_date' => 'campaign.start_date_time'], $result['applied']);
     }
+
+    public function testDoesNotRewriteInsideStringLiteralWithEscapedQuote(): void
+    {
+        $query = 'SELECT campaign.id FROM campaign WHERE campaign.name = "customer \"metrics.video_views\""';
+        $result = DeprecatedFieldRewriter::rewrite($query);
+        self::assertSame($query, $result['query']);
+        self::assertSame([], $result['applied']);
+    }
+
+    public function testSelectClauseRenamesExcludesWhereOnlyFields(): void
+    {
+        $original = 'SELECT campaign.start_date_time FROM campaign WHERE campaign.start_date > "2020-01-01"';
+        $applied = DeprecatedFieldRewriter::rewrite($original)['applied'];
+        self::assertSame(['campaign.start_date' => 'campaign.start_date_time'], $applied);
+        self::assertSame([], DeprecatedFieldRewriter::selectClauseRenames($original, $applied));
+    }
+
+    public function testSelectClauseRenamesIncludesSelectedFields(): void
+    {
+        $original = 'SELECT campaign.start_date, metrics.video_views FROM campaign '
+            . 'WHERE campaign.start_date > "2020-01-01"';
+        $applied = DeprecatedFieldRewriter::rewrite($original)['applied'];
+        self::assertSame([
+            'campaign.start_date' => 'campaign.start_date_time',
+            'metrics.video_views' => 'metrics.video_trueview_views',
+        ], DeprecatedFieldRewriter::selectClauseRenames($original, $applied));
+    }
 }

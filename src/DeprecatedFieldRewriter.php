@@ -54,7 +54,7 @@ class DeprecatedFieldRewriter
      * whole GAQL field-path token, e.g. "campaign.start_date", "metrics.video_views".
      */
     private const FIELD_OR_STRING_PATTERN =
-        '/(?<str>\'[^\']*\'|"[^"]*")|(?<field>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)/';
+        '/(?<str>\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")|(?<field>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)/';
 
     /**
      * @return array{query: string, applied: array<string, string>}
@@ -85,6 +85,31 @@ class DeprecatedFieldRewriter
             'query' => $rewritten ?? $query,
             'applied' => $applied,
         ];
+    }
+
+    /**
+     * The subset of applied renames whose deprecated field appears in the SELECT list of the
+     * ORIGINAL query — the only renames that affect OUTPUT columns. A deprecated field used only
+     * in WHERE / ORDER BY is still rewritten for the API request, but must not rename or truncate
+     * any output column (that would corrupt a column the user selected under a correct name).
+     *
+     * @param array<string, string> $applied old path => new path, from rewrite()
+     * @return array<string, string>
+     */
+    public static function selectClauseRenames(string $originalQuery, array $applied): array
+    {
+        if (preg_match('/\bSELECT\b(.*?)\bFROM\b/is', $originalQuery, $matches) !== 1) {
+            return $applied;
+        }
+        $selectClause = $matches[1];
+        $inSelect = [];
+        foreach ($applied as $oldPath => $newPath) {
+            $pattern = '/(?<![A-Za-z0-9_.])' . preg_quote($oldPath, '/') . '(?![A-Za-z0-9_.])/';
+            if (preg_match($pattern, $selectClause) === 1) {
+                $inSelect[$oldPath] = $newPath;
+            }
+        }
+        return $inSelect;
     }
 
     /**
