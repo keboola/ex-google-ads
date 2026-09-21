@@ -116,4 +116,22 @@ class DeprecatedFieldRewriterTest extends TestCase
             DeprecatedFieldRewriter::columnKeyFromPath('metrics.video_views'),
         );
     }
+
+    public function testRewritesRemainingRenamedMetrics(): void
+    {
+        $result = DeprecatedFieldRewriter::rewrite(
+            'SELECT metrics.average_cpv, metrics.video_view_rate_in_feed, '
+            . 'metrics.video_view_rate_shorts FROM campaign',
+        );
+        self::assertSame(
+            'SELECT metrics.trueview_average_cpv, metrics.video_trueview_view_rate_in_feed, '
+            . 'metrics.video_trueview_view_rate_shorts FROM campaign',
+            $result['query'],
+        );
+        self::assertSame([
+            'metrics.average_cpv' => 'metrics.trueview_average_cpv',
+            'metrics.video_view_rate_in_feed' => 'metrics.video_trueview_view_rate_in_feed',
+            'metrics.video_view_rate_shorts' => 'metrics.video_trueview_view_rate_shorts',
+        ], $result['applied']);
+    }
 }
