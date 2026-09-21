@@ -71,7 +71,7 @@ class ExtractionStats
             count($this->failures) > self::LOGGED_FAILURES_LIMIT
                 ? sprintf('First %d errors', self::LOGGED_FAILURES_LIMIT)
                 : 'Errors',
-            implode(' ', array_slice($this->failures, 0, self::LOGGED_FAILURES_LIMIT)),
+            implode('; ', array_slice($this->failures, 0, self::LOGGED_FAILURES_LIMIT)),
         );
     }
 }
