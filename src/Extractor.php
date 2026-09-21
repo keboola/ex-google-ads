@@ -278,13 +278,16 @@ class Extractor
             ],
         );
 
-        $listColumns = $this->useLegacyCampaignDateColumns($this->getColumnsFromSearch($search, true));
+        $rewriteEnabled = $this->config->rewriteDeprecatedFieldsEnabled();
+        $columns = $this->getColumnsFromSearch($search, true);
+        $listColumns = $rewriteEnabled ? $this->useLegacyCampaignDateColumns($columns) : $columns;
 
         foreach ($search->iterateAllElements() as $result) {
             /** @var GoogleAdsRow $result */
             /** @var Message $campaign */
             $campaign = $result->getCampaign();
-            $parsedCampaign = $this->truncateCampaignDates($this->parseResponse($campaign, $listColumns));
+            $parsed = $this->parseResponse($campaign, $listColumns);
+            $parsedCampaign = $rewriteEnabled ? $this->truncateCampaignDates($parsed) : $parsed;
             $csvCampaign->writeRow(array_merge(
                 ['customerId' => $customerId],
                 $parsedCampaign,
@@ -306,6 +309,23 @@ class Extractor
 
     private function getReport(string $customerId, string $query, string $tableName): void
     {
+        $appliedRenames = [];
+        if ($this->config->rewriteDeprecatedFieldsEnabled()) {
+            $rewrite = DeprecatedFieldRewriter::rewrite($query);
+            $query = $rewrite['query'];
+            $appliedRenames = $rewrite['applied'];
+            foreach ($appliedRenames as $oldPath => $newPath) {
+                $this->logger->warning(sprintf(
+                    'Rewrote deprecated field "%s" to "%s" for account "%s" for backwards '
+                    . 'compatibility. Update your query to use "%s".',
+                    $oldPath,
+                    $newPath,
+                    $customerId,
+                    $newPath,
+                ));
+            }
+        }
+
         if ($this->config->getSince() && $this->config->getUntil()) {
             $query .= sprintf(
                 ' WHERE segments.date BETWEEN "%s" AND "%s"',
@@ -338,6 +358,13 @@ class Extractor
 
         $listColumns = $this->getColumnsFromSearch($search);
 
+        foreach (DeprecatedFieldRewriter::reportColumnOverrides($appliedRenames) as $newKey => $legacyName) {
+            if (isset($listColumns[$newKey])) {
+                $listColumns[$newKey] = $legacyName;
+            }
+        }
+        $dateColumns = DeprecatedFieldRewriter::dateColumnNames($appliedRenames);
+
         $hasNextPage = true;
         $isPrimaryKeysValidated = false;
         while ($hasNextPage) {
@@ -347,6 +374,11 @@ class Extractor
             /** @var GoogleAdsRow $result */
             foreach ($response->getResults() as $result) {
                 $data = $this->parseResponse($result, $listColumns);
+                foreach ($dateColumns as $dateColumn) {
+                    if (isset($data[$dateColumn])) {
+                        $data[$dateColumn] = DeprecatedFieldRewriter::truncateToDate($data[$dateColumn]);
+                    }
+                }
                 if (!$isPrimaryKeysValidated) {
                     $this->validatePrimaryKeys($listColumns, $this->config->getPrimaryKeys());
                     $isPrimaryKeysValidated = true;
@@ -491,8 +523,8 @@ class Extractor
                 array_shift($column);
                 $column = implode('.', $column);
             }
-            $columnKey = lcfirst(str_replace('_', '', ucwords($column, '_')));
-            $columnValue = lcfirst(str_replace(['.', '_'], '', ucwords($column, '._')));
+            $columnKey = DeprecatedFieldRewriter::columnKeyFromPath($column);
+            $columnValue = DeprecatedFieldRewriter::columnNameFromPath($column);
 
             $listColumns[$columnKey] = $columnValue;
             $iterator->next();

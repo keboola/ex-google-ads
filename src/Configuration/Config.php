@@ -84,6 +84,11 @@ class Config extends BaseConfig
         return (bool) $this->getValue(['parameters', 'continueOnFailure'], true);
     }
 
+    public function rewriteDeprecatedFieldsEnabled(): bool
+    {
+        return (bool) $this->getValue(['parameters', 'rewriteDeprecatedFields'], true);
+    }
+
     protected function getDate(string $date, string $name): string
     {
         $time = strtotime($date);

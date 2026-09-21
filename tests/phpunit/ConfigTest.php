@@ -189,4 +189,37 @@ class ConfigTest extends TestCase
 
         Assert::assertFalse($config->getContinueOnFailure());
     }
+
+    public function testRewriteDeprecatedFieldsDefaultsToTrue(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertTrue($config->rewriteDeprecatedFieldsEnabled());
+    }
+
+    public function testRewriteDeprecatedFieldsCanBeDisabled(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+                'rewriteDeprecatedFields' => false,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertFalse($config->rewriteDeprecatedFieldsEnabled());
+    }
 }
