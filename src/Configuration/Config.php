@@ -79,14 +79,18 @@ class Config extends BaseConfig
         return $this->getValue(['parameters', 'onlyEnabledCustomers'], true);
     }
 
+    // Same mixed-vs-bool shape as onlyEnabledCustomers()/getAccountChildren() above, which are
+    // already baselined; a mis-typed config value throws under strict_types rather than being
+    // silently cast to bool. New baseline entries can't be added here, so these are ignored inline.
+
     public function getContinueOnFailure(): bool
     {
-        return (bool) $this->getValue(['parameters', 'continueOnFailure'], true);
+        return $this->getValue(['parameters', 'continueOnFailure'], true); // @phpstan-ignore return.type
     }
 
     public function rewriteDeprecatedFieldsEnabled(): bool
     {
-        return (bool) $this->getValue(['parameters', 'rewriteDeprecatedFields'], true);
+        return $this->getValue(['parameters', 'rewriteDeprecatedFields'], true); // @phpstan-ignore return.type
     }
 
     protected function getDate(string $date, string $name): string

@@ -25,6 +25,8 @@ class ExtractionStats
 
     private int $processedCustomersCount = 0;
 
+    private int $failedCustomersCount = 0;
+
     /** @var array<int, string> */
     private array $failures = [];
 
@@ -36,7 +38,10 @@ class ExtractionStats
     public function customerFailed(string $customerName, string $customerId, string $errorMessage): void
     {
         $this->processedCustomersCount++;
-        $this->failures[] = sprintf('"%s" (ID "%s"): %s', $customerName, $customerId, $errorMessage);
+        $this->failedCustomersCount++;
+        if (count($this->failures) < self::LOGGED_FAILURES_LIMIT) {
+            $this->failures[] = sprintf('"%s" (ID "%s"): %s', $customerName, $customerId, $errorMessage);
+        }
     }
 
     public function getProcessedCustomersCount(): int
@@ -46,7 +51,7 @@ class ExtractionStats
 
     public function getFailedCustomersCount(): int
     {
-        return count($this->failures);
+        return $this->failedCustomersCount;
     }
 
     /**
@@ -58,7 +63,7 @@ class ExtractionStats
     public function everyProcessedCustomerFailed(): bool
     {
         return $this->processedCustomersCount > 0
-            && count($this->failures) === $this->processedCustomersCount;
+            && $this->failedCustomersCount === $this->processedCustomersCount;
     }
 
     public function getEveryCustomerFailedMessage(): string
@@ -68,7 +73,7 @@ class ExtractionStats
             . 'downloaded. Fix the errors listed above and run the extraction again. %s: %s',
             $this->processedCustomersCount,
             $this->processedCustomersCount === 1 ? 'account' : 'accounts',
-            count($this->failures) > self::LOGGED_FAILURES_LIMIT
+            $this->failedCustomersCount > self::LOGGED_FAILURES_LIMIT
                 ? sprintf('First %d errors', self::LOGGED_FAILURES_LIMIT)
                 : 'Errors',
             implode('; ', array_slice($this->failures, 0, self::LOGGED_FAILURES_LIMIT)),

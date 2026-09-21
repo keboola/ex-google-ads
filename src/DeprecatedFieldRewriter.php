@@ -15,9 +15,8 @@ namespace Keboola\GoogleAds;
  * "metrics.video_view_rate_in_stream" never collide and a query that already uses the current name
  * is left untouched.
  *
- * Matching is whole-query, not scoped to field positions, so a deprecated token appearing inside a
- * GAQL string literal (e.g. a quoted filter value) would also be rewritten, though no legitimate
- * query does this.
+ * Matching skips quoted spans (single- or double-quoted GAQL string literals), so a deprecated
+ * field-path token that happens to appear inside a quoted filter value is left untouched.
  */
 class DeprecatedFieldRewriter
 {
@@ -50,8 +49,12 @@ class DeprecatedFieldRewriter
         'campaign.end_date',
     ];
 
-    /** Matches one whole GAQL field-path token, e.g. "campaign.start_date", "metrics.video_views". */
-    private const FIELD_TOKEN_PATTERN = '/[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+/';
+    /**
+     * Matches either a quoted string literal (single- or double-quoted, returned verbatim) or one
+     * whole GAQL field-path token, e.g. "campaign.start_date", "metrics.video_views".
+     */
+    private const FIELD_OR_STRING_PATTERN =
+        '/(?<str>\'[^\']*\'|"[^"]*")|(?<field>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)/';
 
     /**
      * @return array{query: string, applied: array<string, string>}
@@ -60,9 +63,14 @@ class DeprecatedFieldRewriter
     {
         $applied = [];
         $rewritten = preg_replace_callback(
-            self::FIELD_TOKEN_PATTERN,
-            /** @param array<int, string> $matches */
+            self::FIELD_OR_STRING_PATTERN,
+            /** @param array<int|string, string> $matches */
             static function (array $matches) use (&$applied): string {
+                // The 'str' offset always exists here: it precedes 'field' in the pattern, so PCRE
+                // backfills it with '' whenever the 'field' branch matches instead.
+                if ($matches['str'] !== '') {
+                    return $matches[0]; // quoted literal — leave untouched
+                }
                 $token = $matches[0];
                 if (array_key_exists($token, self::RENAMES)) {
                     $applied[$token] = self::RENAMES[$token];

@@ -181,4 +181,24 @@ class DeprecatedFieldRewriterTest extends TestCase
             DeprecatedFieldRewriter::truncateDateColumns($row, $applied),
         );
     }
+
+    public function testDoesNotRewriteDeprecatedTokenInsideStringLiteral(): void
+    {
+        $query = 'SELECT campaign.id FROM campaign WHERE campaign.name = "campaign.start_date"';
+        $result = DeprecatedFieldRewriter::rewrite($query);
+        self::assertSame($query, $result['query']);
+        self::assertSame([], $result['applied']);
+    }
+
+    public function testRewritesRealFieldButNotItsStringLiteralTwin(): void
+    {
+        $result = DeprecatedFieldRewriter::rewrite(
+            'SELECT campaign.start_date FROM campaign WHERE campaign.name != "metrics.video_views"',
+        );
+        self::assertSame(
+            'SELECT campaign.start_date_time FROM campaign WHERE campaign.name != "metrics.video_views"',
+            $result['query'],
+        );
+        self::assertSame(['campaign.start_date' => 'campaign.start_date_time'], $result['applied']);
+    }
 }
