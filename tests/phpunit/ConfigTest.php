@@ -156,4 +156,70 @@ class ConfigTest extends TestCase
             'The child config "query" under "root.parameters" must be configured.',
         ];
     }
+
+    public function testContinueOnFailureDefaultsToTrue(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertTrue($config->getContinueOnFailure());
+    }
+
+    public function testContinueOnFailureCanBeDisabled(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+                'continueOnFailure' => false,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertFalse($config->getContinueOnFailure());
+    }
+
+    public function testRewriteDeprecatedFieldsDefaultsToTrue(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertTrue($config->rewriteDeprecatedFieldsEnabled());
+    }
+
+    public function testRewriteDeprecatedFieldsCanBeDisabled(): void
+    {
+        $config = new Config([
+            'parameters' => [
+                'customerId' => ['1234567890'],
+                'name' => 'testName',
+                'query' => 'testQuery',
+                'primary' => [],
+                'onlyEnabledCustomers' => true,
+                'rewriteDeprecatedFields' => false,
+            ],
+            'image_parameters' => ['#developer_token' => 'imageToken'],
+        ], new ConfigDefinition());
+
+        Assert::assertFalse($config->rewriteDeprecatedFieldsEnabled());
+    }
 }
